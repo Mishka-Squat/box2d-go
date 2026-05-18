@@ -14,12 +14,10 @@ type WorldId struct {
 	generation uint16
 }
 
-// goworldidptr - Returns new WorldId from pointer
 func goworldidptr(ptr *C.b2WorldId) *WorldId {
 	return (*WorldId)(unsafe.Pointer(ptr))
 }
 
-// cworldidptr returns b2WorldId C pointer
 func cworldidptr(col *WorldId) *C.b2WorldId {
 	return (*C.b2WorldId)(unsafe.Pointer(col))
 }
@@ -29,6 +27,14 @@ type BodyId struct {
 	index1     int32
 	world0     uint16
 	generation uint16
+}
+
+func gobodyidptr(ptr *C.b2BodyId) *BodyId {
+	return (*BodyId)(unsafe.Pointer(ptr))
+}
+
+func cbodyidptr(col *BodyId) *C.b2BodyId {
+	return (*C.b2BodyId)(unsafe.Pointer(col))
 }
 
 // Shape id references a shape instance. This should be treated as an opaque handle.

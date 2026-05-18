@@ -148,12 +148,10 @@ type WorldDef struct {
 	InternalValue int
 }
 
-// goworlddefptr - Returns new Color from pointer
 func goworlddefptr(ptr *C.b2WorldDef) *WorldDef {
 	return (*WorldDef)(unsafe.Pointer(ptr))
 }
 
-// cworlddefptr returns color C pointer
 func cworlddefptr(col *WorldDef) *C.b2WorldDef {
 	return (*C.b2WorldDef)(unsafe.Pointer(col))
 }
@@ -272,4 +270,12 @@ type BodyDef struct {
 
 	/// Used internally to detect a valid definition. DO NOT SET.
 	InternalValue int
+}
+
+func gobodydefptr(ptr *C.b2BodyDef) *BodyDef {
+	return (*BodyDef)(unsafe.Pointer(ptr))
+}
+
+func cbodydefptr(col *BodyDef) *C.b2BodyDef {
+	return (*C.b2BodyDef)(unsafe.Pointer(col))
 }

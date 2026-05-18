@@ -6,9 +6,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWorld(t *testing.T) {
-	wd := DefaultWorldDef()
-	world := CreateWorld(&wd)
-	assert.True(t, world.IsValid())
-	DestroyWorld(world)
+func TestCreateWorld(t *testing.T) {
+	worldDef := DefaultWorldDef()
+	world := CreateWorld(&worldDef)
+	if assert.True(t, world.IsValid()) {
+		defer DestroyWorld(world)
+	}
+}
+
+func TestCreateBody(t *testing.T) {
+	worldDef := DefaultWorldDef()
+	world := CreateWorld(&worldDef)
+	if assert.True(t, world.IsValid()) {
+		defer DestroyWorld(world)
+	}
+
+	bodyDef := DefaultBodyDef()
+	body := world.CreateBody(&bodyDef)
+	if assert.True(t, body.IsValid()) {
+		defer DestroyBody(body)
+	}
 }
