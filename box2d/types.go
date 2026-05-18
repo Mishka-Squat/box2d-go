@@ -170,7 +170,7 @@ func DefaultWorldDef() WorldDef {
 // The body simulation type.
 // Each body is one of these three types. The type determines how the body behaves in the simulation.
 // @ingroup body
-type BodyType int
+type BodyType int32
 
 const (
 	// zero mass, zero velocity, may be manually moved
@@ -351,122 +351,128 @@ func DefaultQueryFilter() QueryFilter {
 	return *cast[QueryFilter](&r)
 }
 
-/*
-
 // Shape type
 // @ingroup shape
-typedef enum b2ShapeType
-{
+type ShapeType int32
+
+const (
 	// A circle with an offset
-	b2_circleShape,
+	CircleShape ShapeType = iota
 
 	// A capsule is an extruded circle
-	b2_capsuleShape,
+	CapsuleShape
 
 	// A line segment
-	b2_segmentShape,
+	SegmentShape
 
 	// A convex polygon
-	b2_polygonShape,
+	PolygonShape
 
 	// A line segment owned by a chain shape
-	b2_chainSegmentShape,
+	ChainSegmentShape
 
 	// The number of shape types
-	b2_shapeTypeCount
-} b2ShapeType;
+	ShapeTypeCount
+)
 
 // Surface materials allow chain shapes to have per segment surface properties.
 // @ingroup shape
-type  b2SurfaceMaterial struct {
+type SurfaceMaterial struct {
 	// The Coulomb (dry) friction coefficient, usually in the range [0,1].
-	float friction;
+	Friction float32
 
 	// The coefficient of restitution (bounce) usually in the range [0,1].
 	// https://en.wikipedia.org/wiki/Coefficient_of_restitution
-	float restitution;
+	Restitution float32
 
 	// The rolling resistance usually in the range [0,1].
-	float rollingResistance;
+	RollingResistance float32
 
 	// The tangent speed for conveyor belts
-	float tangentSpeed;
+	TangentSpeed float32
 
 	// User material identifier. This is passed with query results and to friction and restitution
 	// combining functions. It is not used internally.
-	uint64_t userMaterialId;
+	UserMaterialId uint64
 
 	// Custom debug draw color.
-	uint32_t customColor;
+	CustomColor uint32
 }
 
 // Use this to initialize your surface material
 // @ingroup shape
-B2_API b2SurfaceMaterial b2DefaultSurfaceMaterial( void );
+func DefaultSurfaceMaterial() SurfaceMaterial {
+	r := C.b2DefaultSurfaceMaterial()
+	return *cast[SurfaceMaterial](&r)
+}
 
 // Used to create a shape.
 // This is a temporary object used to bundle shape creation parameters. You may use
 // the same shape definition to create multiple shapes.
-// Must be initialized using b2DefaultShapeDef().
+// Must be initialized using DefaultShapeDef().
 // @ingroup shape
-type  b2ShapeDef struct {
+type ShapeDef struct {
 	// Use this to store application specific shape data.
-	any userData;
+	UserData any
 
 	// The surface material for this shape.
-	b2SurfaceMaterial material;
+	Material SurfaceMaterial
 
 	// The density, usually in kg/m^2.
 	// This is not part of the surface material because this is for the interior, which may have
 	// other considerations, such as being hollow. For example a wood barrel may be hollow or full of water.
-	float density;
+	Density float32
 
 	// Collision filtering data.
-	b2Filter filter;
+	Filter Filter
 
 	// Enable custom filtering. Only one of the two shapes needs to enable custom filtering. See b2WorldDef.
-	bool enableCustomFiltering;
+	EnableCustomFiltering bool
 
 	// A sensor shape generates overlap events but never generates a collision response.
 	// Sensors do not have continuous collision. Instead, use a ray or shape cast for those scenarios.
 	// Sensors still contribute to the body mass if they have non-zero density.
 	// @note Sensor events are disabled by default.
 	// @see enableSensorEvents
-	bool isSensor;
+	IsSensor bool
 
 	// Enable sensor events for this shape. This applies to sensors and non-sensors. Both shapes involved must have this flag set to true.
 	// False by default, even for sensors.
-	bool enableSensorEvents;
+	EnableSensorEvents bool
 
 	// Enable contact events for this shape. Only applies to kinematic and dynamic bodies. Only one shape involved needs this flag set to true.
 	// Ignored for sensors. False by default.
-	bool enableContactEvents;
+	EnableContactEvents bool
 
 	// Enable hit events for this shape. Only applies to kinematic and dynamic bodies. Only one shape involved needs this flag set to true.
 	// Ignored for sensors. False by default.
-	bool enableHitEvents;
+	EnableHitEvents bool
 
 	// Enable pre-solve contact events for this shape. Only applies to dynamic bodies. These are expensive
 	// and must be carefully handled due to multithreading. Ignored for sensors.
-	bool enablePreSolveEvents;
+	EnablePreSolveEvents bool
 
 	// When shapes are created they will scan the environment for collision the next time step. This can significantly slow down
 	// static body creation when there are many static shapes.
 	// This is flag is ignored for dynamic and kinematic shapes which always invoke contact creation.
-	bool invokeContactCreation;
+	InvokeContactCreation bool
 
 	// Should the body update the mass properties when this shape is created. Default is true.
 	// Warning: if this is true, you MUST call b2Body_ApplyMassFromShapes before simulating the world.
-	bool updateBodyMass;
+	UpdateBodyMass bool
 
 	// Used internally to detect a valid definition. DO NOT SET.
-	int internalValue;
+	InternalValue int
 }
 
 // Use this to initialize your shape definition
 // @ingroup shape
-B2_API b2ShapeDef b2DefaultShapeDef( void );
+func DefaultShapeDef() ShapeDef {
+	r := C.b2DefaultShapeDef()
+	return *cast[ShapeDef](&r)
+}
 
+/*
 // Used to create a chain of line segments. This is designed to eliminate ghost collisions with some limitations.
 // - chains are one-sided
 // - chains have no mass and should be used on static bodies
@@ -520,29 +526,29 @@ B2_API b2ChainDef b2DefaultChainDef( void );
 //! @cond
 // Profiling data. Times are in milliseconds.
 type  b2Profile struct {
-	float step;
-	float pairs;
-	float collide;
-	float solve;
-	float solverSetup;
-	float constraints;
-	float prepareConstraints;
-	float integrateVelocities;
-	float warmStart;
-	float solveImpulses;
-	float integratePositions;
-	float relaxImpulses;
-	float applyRestitution;
-	float storeImpulses;
-	float splitIslands;
-	float transforms;
-	float sensorHits;
-	float jointEvents;
-	float hitEvents;
-	float refit;
-	float bullets;
-	float sleepIslands;
-	float sensors;
+	float32 step;
+	float32 pairs;
+	float32 collide;
+	float32 solve;
+	float32 solverSetup;
+	float32 constraints;
+	float32 prepareConstraints;
+	float32 integrateVelocities;
+	float32 warmStart;
+	float32 solveImpulses;
+	float32 integratePositions;
+	float32 relaxImpulses;
+	float32 applyRestitution;
+	float32 storeImpulses;
+	float32 splitIslands;
+	float32 transforms;
+	float32 sensorHits;
+	float32 jointEvents;
+	float32 hitEvents;
+	float32 refit;
+	float32 bullets;
+	float32 sleepIslands;
+	float32 sensors;
 } b2Profile;
 
 // Counters that give details of the simulation size.
@@ -1195,7 +1201,7 @@ typedef bool b2PlaneResultFcn( b2ShapeId shapeId, const b2PlaneResult* plane, an
 // See https://www.rapidtables.com/web/color/index.html
 // https://johndecember.com/html/spec/colorsvg.html
 // https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg
-type HexColor = int
+type HexColor int32
 
 const (
 	b2_colorAliceBlue            HexColor = 0xF0F8FF

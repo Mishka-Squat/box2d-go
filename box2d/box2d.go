@@ -40,25 +40,25 @@ func World_Draw(id WorldId, draw *DebugDraw) {
 }
 
 // Get the body events for the current time step. The event data is transient. Do not store a reference to this data.
-func b2World_GetBodyEvents(id WorldId) BodyEvents {
+func World_GetBodyEvents(id WorldId) BodyEvents {
 	r := C.b2World_GetBodyEvents(*cast[C.b2WorldId](&id))
 	return *cast[BodyEvents](&r)
 }
 
 // Get sensor events for the current time step. The event data is transient. Do not store a reference to this data.
-func b2World_GetSensorEvents(id WorldId) SensorEvents {
+func World_GetSensorEvents(id WorldId) SensorEvents {
 	r := C.b2World_GetSensorEvents(*cast[C.b2WorldId](&id))
 	return *cast[SensorEvents](&r)
 }
 
 // Get contact events for this current time step. The event data is transient. Do not store a reference to this data.
-func b2World_GetContactEvents(id WorldId) ContactEvents {
+func World_GetContactEvents(id WorldId) ContactEvents {
 	r := C.b2World_GetContactEvents(*cast[C.b2WorldId](&id))
 	return *cast[ContactEvents](&r)
 }
 
 // Get the joint events for the current time step. The event data is transient. Do not store a reference to this data.
-func b2World_GetJointEvents(id WorldId) JointEvents {
+func World_GetJointEvents(id WorldId) JointEvents {
 	r := C.b2World_GetJointEvents(*cast[C.b2WorldId](&id))
 	return *cast[JointEvents](&r)
 }
@@ -272,13 +272,20 @@ B2_API void b2Body_SetUserData( b2BodyId bodyId, void* userData );
 
 // Get the user data stored in a body
 B2_API void* b2Body_GetUserData( b2BodyId bodyId );
-
+*/
 // Get the world position of a body. This is the location of the body origin.
-B2_API b2Vec2 b2Body_GetPosition( b2BodyId bodyId );
+func Body_GetPosition(bodyId BodyId) Vec2 {
+	r := C.b2Body_GetPosition(*cast[C.b2BodyId](&bodyId))
+	return *cast[Vec2](&r)
+}
 
 // Get the world rotation of a body as a cosine/sine pair (complex number)
-B2_API b2Rot b2Body_GetRotation( b2BodyId bodyId );
+func Body_GetRotation(bodyId BodyId) Rot {
+	r := C.b2Body_GetRotation(*cast[C.b2BodyId](&bodyId))
+	return *cast[Rot](&r)
+}
 
+/*
 // Get the world transform of a body.
 B2_API b2Transform b2Body_GetTransform( b2BodyId bodyId );
 
@@ -516,7 +523,7 @@ B2_API int b2Body_GetContactData( b2BodyId bodyId, b2ContactData* contactData, i
 // Get the current world AABB that contains all the attached shapes. Note that this may not encompass the body origin.
 // If there are no shapes attached then the returned AABB is empty and centered on the body origin.
 B2_API b2AABB b2Body_ComputeAABB( b2BodyId bodyId );
-
+*/
 //
 // @defgroup shape Shape
 // Functions to create, destroy, and access.
@@ -526,28 +533,55 @@ B2_API b2AABB b2Body_ComputeAABB( b2BodyId bodyId );
 // Create a circle shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-B2_API b2ShapeId b2CreateCircleShape( b2BodyId bodyId, const b2ShapeDef* def, const b2Circle* circle );
+func CreateCircleShape(bodyId BodyId, def *ShapeDef, circle *Circle) ShapeId {
+	cbody := *cast[C.b2BodyId](&bodyId)
+	cdef := cast[C.b2ShapeDef](def)
+	ccircle := cast[C.b2Circle](circle)
+	r := C.b2CreateCircleShape(cbody, cdef, ccircle)
+	return *cast[ShapeId](&r)
+}
 
 // Create a line segment shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-B2_API b2ShapeId b2CreateSegmentShape( b2BodyId bodyId, const b2ShapeDef* def, const b2Segment* segment );
+func CreateSegmentShape(bodyId BodyId, def *ShapeDef, segment *Segment) ShapeId {
+	cbody := *cast[C.b2BodyId](&bodyId)
+	cdef := cast[C.b2ShapeDef](def)
+	csegment := cast[C.b2Segment](segment)
+	r := C.b2CreateSegmentShape(cbody, cdef, csegment)
+	return *cast[ShapeId](&r)
+}
 
 // Create a capsule shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape, this will be b2_nullShapeId if the length is too small.
-B2_API b2ShapeId b2CreateCapsuleShape( b2BodyId bodyId, const b2ShapeDef* def, const b2Capsule* capsule );
+func CreateCapsuleShape(bodyId BodyId, def *ShapeDef, capsule *Capsule) ShapeId {
+	cbody := *cast[C.b2BodyId](&bodyId)
+	cdef := cast[C.b2ShapeDef](def)
+	ccapsule := cast[C.b2Capsule](capsule)
+	r := C.b2CreateCapsuleShape(cbody, cdef, ccapsule)
+	return *cast[ShapeId](&r)
+}
 
 // Create a polygon shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-B2_API b2ShapeId b2CreatePolygonShape( b2BodyId bodyId, const b2ShapeDef* def, const b2Polygon* polygon );
+func CreatePolygonShape(bodyId BodyId, def *ShapeDef, polygon *Polygon) ShapeId {
+	cbody := *cast[C.b2BodyId](&bodyId)
+	cdef := cast[C.b2ShapeDef](def)
+	cpolygon := cast[C.b2Polygon](polygon)
+	r := C.b2CreatePolygonShape(cbody, cdef, cpolygon)
+	return *cast[ShapeId](&r)
+}
 
 // Destroy a shape. You may defer the body mass update which can improve performance if several shapes on a
 //	body are destroyed at once.
 //	@see b2Body_ApplyMassFromShapes
-B2_API void b2DestroyShape( b2ShapeId shapeId, bool updateBodyMass );
+func DestroyShape(shapeId ShapeId, updateBodyMass bool) {
+	C.b2DestroyShape(*cast[C.b2ShapeId](&shapeId), C.bool(updateBodyMass))
+}
 
+/*
 // Shape identifier validation. Provides validation for up to 64K allocations.
 B2_API bool b2Shape_IsValid( b2ShapeId id );
 

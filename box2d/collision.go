@@ -23,7 +23,7 @@ type b2SimplexCache b2SimplexCache; struct type b2Hull b2Hull; struct
 const B2_MAX_POLYGON_VERTICES = 8
 
 // Low level ray cast input data
-type b2RayCastInput struct {
+type RayCastInput struct {
 	// Start point of the ray cast
 	Origin Vec2
 
@@ -36,7 +36,7 @@ type b2RayCastInput struct {
 
 // A distance proxy is used by the GJK algorithm. It encapsulates any shape.
 // You can provide between 1 and B2_MAX_POLYGON_VERTICES and a radius.
-type b2ShapeProxy struct {
+type ShapeProxy struct {
 	// The point cloud
 	Points [B2_MAX_POLYGON_VERTICES]Vec2
 
@@ -50,9 +50,9 @@ type b2ShapeProxy struct {
 // Low level shape cast input in generic form. This allows casting an arbitrary point
 // cloud wrap with a radius. For example, a circle is a single point with a non-zero radius.
 // A capsule is two points with a non-zero radius. A box is four points with a zero radius.
-type b2ShapeCastInput struct {
+type ShapeCastInput struct {
 	// A generic shape
-	Proxy b2ShapeProxy
+	Proxy ShapeProxy
 
 	// The translation of the shape cast
 	Translation Vec2
@@ -65,7 +65,7 @@ type b2ShapeCastInput struct {
 }
 
 // Low level ray cast or shape-cast output data. Returns a zero fraction and normal in the case of initial overlap.
-type b2CastOutput struct {
+type CastOutput struct {
 	// The surface normal at the hit point
 	Normal Vec2
 
@@ -83,7 +83,7 @@ type b2CastOutput struct {
 }
 
 // This holds the mass data computed for a shape.
-type b2MassData struct {
+type MassData struct {
 	// The mass of the shape, usually in kilograms.
 	Mass float32
 
@@ -95,7 +95,7 @@ type b2MassData struct {
 }
 
 // A solid circle
-type b2Circle struct {
+type Circle struct {
 	// The local center
 	Center Vec2
 
@@ -105,7 +105,7 @@ type b2Circle struct {
 
 // A solid capsule can be viewed as two semicircles connected
 // by a rectangle.
-type b2Capsule struct {
+type Capsule struct {
 	// Local center of the first semicircle
 	Center1 Vec2
 
@@ -140,7 +140,7 @@ type Polygon struct {
 }
 
 // A line segment with two-sided collision.
-type b2Segment struct {
+type Segment struct {
 	// The first point
 	Point1 Vec2
 
@@ -151,12 +151,12 @@ type b2Segment struct {
 // A line segment with one-sided collision. Only collides on the right side.
 // Several of these are generated for a chain shape.
 // ghost1 -> point1 -> point2 -> ghost2
-type b2ChainSegment struct {
+type ChainSegment struct {
 	// The tail ghost vertex
 	Ghost1 Vec2
 
 	// The line segment
-	Segment b2Segment
+	Segment Segment
 
 	// The head ghost vertex
 	Ghost2 Vec2
