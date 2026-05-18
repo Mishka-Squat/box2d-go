@@ -8,3 +8,8 @@ package box2d
 #include <stdlib.h>
 */
 import "C"
+import "unsafe"
+
+func cast[U, T any](ptr *T) *U {
+	return (*U)(unsafe.Pointer(ptr))
+}

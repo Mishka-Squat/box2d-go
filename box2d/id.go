@@ -6,20 +6,26 @@ package box2d
 */
 import "C"
 
-import "unsafe"
-
 // World id references a world instance. This should be treated as an opaque handle.
 type WorldId struct {
 	index1     uint16
 	generation uint16
 }
 
-func goworldidptr(ptr *C.b2WorldId) *WorldId {
-	return (*WorldId)(unsafe.Pointer(ptr))
+func (w WorldId) Destroy() {
+	DestroyWorld(w)
 }
 
-func cworldidptr(col *WorldId) *C.b2WorldId {
-	return (*C.b2WorldId)(unsafe.Pointer(col))
+func (w WorldId) Defer() {
+	w.Destroy()
+}
+
+func (w WorldId) IsValid() bool {
+	return World_IsValid(w)
+}
+
+func (w WorldId) CreateBody(def *BodyDef) BodyId {
+	return CreateBody(w, def)
 }
 
 // Body id references a body instance. This should be treated as an opaque handle.
@@ -29,12 +35,16 @@ type BodyId struct {
 	generation uint16
 }
 
-func gobodyidptr(ptr *C.b2BodyId) *BodyId {
-	return (*BodyId)(unsafe.Pointer(ptr))
+func (b BodyId) Destroy() {
+	DestroyBody(b)
 }
 
-func cbodyidptr(col *BodyId) *C.b2BodyId {
-	return (*C.b2BodyId)(unsafe.Pointer(col))
+func (b BodyId) Defer() {
+	b.Destroy()
+}
+
+func (b BodyId) IsValid() bool {
+	return Body_IsValid(b)
 }
 
 // Shape id references a shape instance. This should be treated as an opaque handle.

@@ -10,7 +10,7 @@ func TestCreateWorld(t *testing.T) {
 	worldDef := DefaultWorldDef()
 	world := CreateWorld(&worldDef)
 	if assert.True(t, world.IsValid()) {
-		defer DestroyWorld(world)
+		defer world.Defer()
 	}
 }
 
@@ -18,12 +18,12 @@ func TestCreateBody(t *testing.T) {
 	worldDef := DefaultWorldDef()
 	world := CreateWorld(&worldDef)
 	if assert.True(t, world.IsValid()) {
-		defer DestroyWorld(world)
+		defer world.Defer()
 	}
 
 	bodyDef := DefaultBodyDef()
 	body := world.CreateBody(&bodyDef)
 	if assert.True(t, body.IsValid()) {
-		defer DestroyBody(body)
+		defer body.Defer()
 	}
 }
