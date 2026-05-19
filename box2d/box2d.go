@@ -74,7 +74,7 @@ func World_OverlapAABB(id WorldId, aabb AABB, filter QueryFilter, fcn OverlapRes
 }
 
 // Overlap test for all shapes that overlap the provided shape proxy.
-//func b2World_OverlapShape(id WorldId, proxy *ShapeProxy, filter QueryFilter, fcn OverlapResultFcn, context any) TreeStats {
+//func World_OverlapShape(id WorldId, proxy *ShapeProxy, filter QueryFilter, fcn OverlapResultFcn, context any) TreeStats {
 //
 //}
 
@@ -103,11 +103,11 @@ B2_API b2TreeStats b2World_CastShape( b2WorldId worldId, const b2ShapeProxy* pro
 
 // Cast a capsule mover through the world. This is a special shape cast that handles sliding along other shapes while reducing
 // clipping.
-B2_API float32 b2World_CastMover( b2WorldId worldId, const b2Capsule* mover, Vec2 translation, b2QueryFilter filter );
+B2_API float32 b2World_CastMover( b2WorldId worldId, const Capsule* mover, Vec2 translation, b2QueryFilter filter );
 
 // Collide a capsule mover with the world, gathering collision planes that can be fed to b2SolvePlanes. Useful for
 // kinematic character movement.
-B2_API void b2World_CollideMover( b2WorldId worldId, const b2Capsule* mover, b2QueryFilter filter, b2PlaneResultFcn* fcn,
+B2_API void b2World_CollideMover( b2WorldId worldId, const Capsule* mover, b2QueryFilter filter, b2PlaneResultFcn* fcn,
 								  void* context );
 
 // Enable/disable sleep. If your application does not need sleeping, you can gain some performance
@@ -256,15 +256,18 @@ func Body_IsValid(id BodyId) bool {
 	return bool(C.b2Body_IsValid(*cast[C.b2BodyId](&id)))
 }
 
-/*
-
 // Get the body type: static, kinematic, or dynamic
-B2_API b2BodyType b2Body_GetType( b2BodyId bodyId );
+func Body_GetType(bodyId BodyId) BodyType {
+	return BodyType(C.b2Body_GetType(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Change the body type. This is an expensive operation. This automatically updates the mass
 // properties regardless of the automatic mass setting.
-B2_API void b2Body_SetType( b2BodyId bodyId, b2BodyType type );
+func Body_SetType(bodyId BodyId, _type BodyType) {
+	C.b2Body_SetType(*cast[C.b2BodyId](&bodyId), C.b2BodyType(_type))
+}
 
+/*
 // Set the body name. Up to 31 characters excluding 0 termination.
 B2_API void b2Body_SetName( b2BodyId bodyId, const char* name );
 
@@ -290,7 +293,7 @@ func Body_GetRotation(bodyId BodyId) Rot {
 }
 
 // Get the world transform of a body.
-func b2Body_GetTransform(bodyId BodyId) Transform {
+func Body_GetTransform(bodyId BodyId) Transform {
 	r := C.b2Body_GetTransform(*cast[C.b2BodyId](&bodyId))
 	return *cast[Transform](&r)
 }
@@ -298,52 +301,52 @@ func b2Body_GetTransform(bodyId BodyId) Transform {
 // Set the world transform of a body. This acts as a teleport and is fairly expensive.
 // @note Generally you should create a body with then intended transform.
 // @see b2BodyDef::position and b2BodyDef::rotation
-func b2Body_SetTransform(bodyId BodyId, position Vec2, rotation Rot) {
+func Body_SetTransform(bodyId BodyId, position Vec2, rotation Rot) {
 	C.b2Body_SetTransform(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&position), *cast[C.b2Rot](&rotation))
 }
 
 // Get a local point on a body given a world point
-func b2Body_GetLocalPoint(bodyId BodyId, worldPoint Vec2) Vec2 {
+func Body_GetLocalPoint(bodyId BodyId, worldPoint Vec2) Vec2 {
 	r := C.b2Body_GetLocalPoint(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&worldPoint))
 	return *cast[Vec2](&r)
 }
 
 // Get a world point on a body given a local point
-func b2Body_GetWorldPoint(bodyId BodyId, localPoint Vec2) Vec2 {
+func Body_GetWorldPoint(bodyId BodyId, localPoint Vec2) Vec2 {
 	r := C.b2Body_GetWorldPoint(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&localPoint))
 	return *cast[Vec2](&r)
 }
 
 // Get a local vector on a body given a world vector
-func b2Body_GetLocalVector(bodyId BodyId, worldVector Vec2) Vec2 {
+func Body_GetLocalVector(bodyId BodyId, worldVector Vec2) Vec2 {
 	r := C.b2Body_GetLocalVector(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&worldVector))
 	return *cast[Vec2](&r)
 }
 
 // Get a world vector on a body given a local vector
-func b2Body_GetWorldVector(bodyId BodyId, localVector Vec2) Vec2 {
+func Body_GetWorldVector(bodyId BodyId, localVector Vec2) Vec2 {
 	r := C.b2Body_GetWorldVector(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&localVector))
 	return *cast[Vec2](&r)
 }
 
 // Get the linear velocity of a body's center of mass. Usually in meters per second.
-func b2Body_GetLinearVelocity(bodyId BodyId) Vec2 {
+func Body_GetLinearVelocity(bodyId BodyId) Vec2 {
 	r := C.b2Body_GetLinearVelocity(*cast[C.b2BodyId](&bodyId))
 	return *cast[Vec2](&r)
 }
 
 // Get the angular velocity of a body in radians per second
-func b2Body_GetAngularVelocity(bodyId BodyId) float32 {
+func Body_GetAngularVelocity(bodyId BodyId) float32 {
 	return float32(C.b2Body_GetAngularVelocity(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Set the linear velocity of a body. Usually in meters per second.
-func b2Body_SetLinearVelocity(bodyId BodyId, linearVelocity Vec2) {
+func Body_SetLinearVelocity(bodyId BodyId, linearVelocity Vec2) {
 	C.b2Body_SetLinearVelocity(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&linearVelocity))
 }
 
 // Set the angular velocity of a body in radians per second
-func b2Body_SetAngularVelocity(bodyId BodyId, angularVelocity float32) {
+func Body_SetAngularVelocity(bodyId BodyId, angularVelocity float32) {
 	C.b2Body_SetAngularVelocity(*cast[C.b2BodyId](&bodyId), C.float(angularVelocity))
 }
 
@@ -355,18 +358,18 @@ func b2Body_SetAngularVelocity(bodyId BodyId, angularVelocity float32) {
 // @param target The target transform for the body
 // @param timeStep The time step of the next call to b2World_Step
 // @param wake Option to wake the body or not
-func b2Body_SetTargetTransform(bodyId BodyId, target Transform, timeStep float32, wake bool) {
+func Body_SetTargetTransform(bodyId BodyId, target Transform, timeStep float32, wake bool) {
 	C.b2Body_SetTargetTransform(*cast[C.b2BodyId](&bodyId), *cast[C.b2Transform](&target), C.float(timeStep), C.bool(wake))
 }
 
 // Get the linear velocity of a local point attached to a body. Usually in meters per second.
-func b2Body_GetLocalPointVelocity(bodyId BodyId, localPoint Vec2) Vec2 {
+func Body_GetLocalPointVelocity(bodyId BodyId, localPoint Vec2) Vec2 {
 	r := C.b2Body_GetLocalPointVelocity(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&localPoint))
 	return *cast[Vec2](&r)
 }
 
 // Get the linear velocity of a world point attached to a body. Usually in meters per second.
-func b2Body_GetWorldPointVelocity(bodyId BodyId, worldPoint Vec2) Vec2 {
+func Body_GetWorldPointVelocity(bodyId BodyId, worldPoint Vec2) Vec2 {
 	r := C.b2Body_GetWorldPointVelocity(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&worldPoint))
 	return *cast[Vec2](&r)
 }
@@ -378,7 +381,7 @@ func b2Body_GetWorldPointVelocity(bodyId BodyId, worldPoint Vec2) Vec2 {
 // @param force The world force vector, usually in newtons (N)
 // @param point The world position of the point of application
 // @param wake Option to wake up the body
-func b2Body_ApplyForce(bodyId BodyId, force Vec2, point Vec2, wake bool) {
+func Body_ApplyForce(bodyId BodyId, force Vec2, point Vec2, wake bool) {
 	C.b2Body_ApplyForce(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&force), *cast[C.b2Vec2](&point), C.bool(wake))
 }
 
@@ -387,7 +390,7 @@ func b2Body_ApplyForce(bodyId BodyId, force Vec2, point Vec2, wake bool) {
 // @param bodyId The body id
 // @param force the world force vector, usually in newtons (N).
 // @param wake also wake up the body
-func b2Body_ApplyForceToCenter(bodyId BodyId, force Vec2, wake bool) {
+func Body_ApplyForceToCenter(bodyId BodyId, force Vec2, wake bool) {
 	C.b2Body_ApplyForceToCenter(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&force), C.bool(wake))
 }
 
@@ -396,7 +399,7 @@ func b2Body_ApplyForceToCenter(bodyId BodyId, force Vec2, wake bool) {
 // @param bodyId The body id
 // @param torque about the z-axis (out of the screen), usually in N*m.
 // @param wake also wake up the body
-func b2Body_ApplyTorque(bodyId BodyId, torque float32, wake bool) {
+func Body_ApplyTorque(bodyId BodyId, torque float32, wake bool) {
 	C.b2Body_ApplyTorque(*cast[C.b2BodyId](&bodyId), C.float(torque), C.bool(wake))
 }
 
@@ -404,7 +407,7 @@ func b2Body_ApplyTorque(bodyId BodyId, torque float32, wake bool) {
 // step. So this only needs to be called if the application wants to remove the effect of previous
 // calls to apply forces and torques before the world step is called.
 // @param bodyId The body id
-func b2Body_ClearForces(bodyId BodyId) {
+func Body_ClearForces(bodyId BodyId) {
 	C.b2Body_ClearForces(*cast[C.b2BodyId](&bodyId))
 }
 
@@ -418,7 +421,7 @@ func b2Body_ClearForces(bodyId BodyId) {
 // @param wake also wake up the body
 // @warning This should be used for one-shot impulses. If you need a steady force,
 // use a force instead, which will work better with the sub-stepping solver.
-func b2Body_ApplyLinearImpulse(bodyId BodyId, impulse Vec2, point Vec2, wake bool) {
+func Body_ApplyLinearImpulse(bodyId BodyId, impulse Vec2, point Vec2, wake bool) {
 	C.b2Body_ApplyLinearImpulse(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&impulse), *cast[C.b2Vec2](&point), C.bool(wake))
 }
 
@@ -429,7 +432,7 @@ func b2Body_ApplyLinearImpulse(bodyId BodyId, impulse Vec2, point Vec2, wake boo
 // @param wake also wake up the body
 // @warning This should be used for one-shot impulses. If you need a steady force,
 // use a force instead, which will work better with the sub-stepping solver.
-func b2Body_ApplyLinearImpulseToCenter(bodyId BodyId, impulse Vec2, wake bool) {
+func Body_ApplyLinearImpulseToCenter(bodyId BodyId, impulse Vec2, wake bool) {
 	C.b2Body_ApplyLinearImpulseToCenter(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&impulse), C.bool(wake))
 }
 
@@ -440,28 +443,28 @@ func b2Body_ApplyLinearImpulseToCenter(bodyId BodyId, impulse Vec2, wake bool) {
 // @param wake also wake up the body
 // @warning This should be used for one-shot impulses. If you need a steady torque,
 // use a torque instead, which will work better with the sub-stepping solver.
-func b2Body_ApplyAngularImpulse(bodyId BodyId, impulse float32, wake bool) {
+func Body_ApplyAngularImpulse(bodyId BodyId, impulse float32, wake bool) {
 	C.b2Body_ApplyAngularImpulse(*cast[C.b2BodyId](&bodyId), C.float(impulse), C.bool(wake))
 }
 
 // Get the mass of the body, usually in kilograms
-func b2Body_GetMass(bodyId BodyId) float32 {
+func Body_GetMass(bodyId BodyId) float32 {
 	return float32(C.b2Body_GetMass(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Get the rotational inertia of the body, usually in kg*m^2
-func b2Body_GetRotationalInertia(bodyId BodyId) float32 {
+func Body_GetRotationalInertia(bodyId BodyId) float32 {
 	return float32(C.b2Body_GetRotationalInertia(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Get the center of mass position of the body in local space
-func b2Body_GetLocalCenterOfMass(bodyId BodyId) Vec2 {
+func Body_GetLocalCenterOfMass(bodyId BodyId) Vec2 {
 	r := C.b2Body_GetLocalCenterOfMass(*cast[C.b2BodyId](&bodyId))
 	return *cast[Vec2](&r)
 }
 
 // Get the center of mass position of the body in world space
-func b2Body_GetWorldCenterOfMass(bodyId BodyId) Vec2 {
+func Body_GetWorldCenterOfMass(bodyId BodyId) Vec2 {
 	r := C.b2Body_GetWorldCenterOfMass(*cast[C.b2BodyId](&bodyId))
 	return *cast[Vec2](&r)
 }
@@ -469,12 +472,12 @@ func b2Body_GetWorldCenterOfMass(bodyId BodyId) Vec2 {
 // Override the body's mass properties. Normally this is computed automatically using the
 // shape geometry and density. This information is lost if a shape is added or removed or if the
 // body type changes.
-func b2Body_SetMassData(bodyId BodyId, massData MassData) {
+func Body_SetMassData(bodyId BodyId, massData MassData) {
 	C.b2Body_SetMassData(*cast[C.b2BodyId](&bodyId), *cast[C.b2MassData](&massData))
 }
 
 // Get the mass data for a body
-func b2Body_GetMassData(bodyId BodyId) MassData {
+func Body_GetMassData(bodyId BodyId) MassData {
 	r := C.b2Body_GetMassData(*cast[C.b2BodyId](&bodyId))
 	return *cast[MassData](&r)
 }
@@ -485,158 +488,158 @@ func b2Body_GetMassData(bodyId BodyId) MassData {
 // You may also use this when automatic mass computation has been disabled.
 // You should call this regardless of body type.
 // Note that sensor shapes may have mass.
-func b2Body_ApplyMassFromShapes(bodyId BodyId) {
+func Body_ApplyMassFromShapes(bodyId BodyId) {
 	C.b2Body_ApplyMassFromShapes(*cast[C.b2BodyId](&bodyId))
 }
 
 // Adjust the linear damping. Normally this is set in b2BodyDef before creation.
-func b2Body_SetLinearDamping(bodyId BodyId, linearDamping float32) {
+func Body_SetLinearDamping(bodyId BodyId, linearDamping float32) {
 	C.b2Body_SetLinearDamping(*cast[C.b2BodyId](&bodyId), C.float(linearDamping))
 }
 
 // Get the current linear damping.
-func b2Body_GetLinearDamping(bodyId BodyId) float32 {
+func Body_GetLinearDamping(bodyId BodyId) float32 {
 	return float32(C.b2Body_GetLinearDamping(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Adjust the angular damping. Normally this is set in b2BodyDef before creation.
-func b2Body_SetAngularDamping(bodyId BodyId, angularDamping float32) {
+func Body_SetAngularDamping(bodyId BodyId, angularDamping float32) {
 	C.b2Body_SetAngularDamping(*cast[C.b2BodyId](&bodyId), C.float(angularDamping))
 }
 
 // Get the current angular damping.
-func b2Body_GetAngularDamping(bodyId BodyId) float32 {
+func Body_GetAngularDamping(bodyId BodyId) float32 {
 	return float32(C.b2Body_GetAngularDamping(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Adjust the gravity scale. Normally this is set in b2BodyDef before creation.
 // @see b2BodyDef::gravityScale
-func b2Body_SetGravityScale(bodyId BodyId, gravityScale float32) {
+func Body_SetGravityScale(bodyId BodyId, gravityScale float32) {
 	C.b2Body_SetGravityScale(*cast[C.b2BodyId](&bodyId), C.float(gravityScale))
 }
 
 // Get the current gravity scale
-func b2Body_GetGravityScale(bodyId BodyId) float32 {
+func Body_GetGravityScale(bodyId BodyId) float32 {
 	return float32(C.b2Body_GetGravityScale(*cast[C.b2BodyId](&bodyId)))
 }
 
 // @return true if this body is awake
-func b2Body_IsAwake(bodyId BodyId) bool {
+func Body_IsAwake(bodyId BodyId) bool {
 	return bool(C.b2Body_IsAwake(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Wake a body from sleep. This wakes the entire island the body is touching.
 // @warning Putting a body to sleep will put the entire island of bodies touching this body to sleep,
 // which can be expensive and possibly unintuitive.
-func b2Body_SetAwake(bodyId BodyId, awake bool) {
+func Body_SetAwake(bodyId BodyId, awake bool) {
 	C.b2Body_SetAwake(*cast[C.b2BodyId](&bodyId), C.bool(awake))
 }
 
 // Wake bodies touching this body. Works for static bodies.
-func b2Body_WakeTouching(bodyId BodyId) {
+func Body_WakeTouching(bodyId BodyId) {
 	C.b2Body_WakeTouching(*cast[C.b2BodyId](&bodyId))
 }
 
 // Enable or disable sleeping for this body. If sleeping is disabled the body will wake.
-func b2Body_EnableSleep(bodyId BodyId, enableSleep bool) {
+func Body_EnableSleep(bodyId BodyId, enableSleep bool) {
 	C.b2Body_EnableSleep(*cast[C.b2BodyId](&bodyId), C.bool(enableSleep))
 }
 
 // Returns true if sleeping is enabled for this body
-func b2Body_IsSleepEnabled(bodyId BodyId) bool {
+func Body_IsSleepEnabled(bodyId BodyId) bool {
 	return bool(C.b2Body_IsSleepEnabled(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Set the sleep threshold, usually in meters per second
-func b2Body_SetSleepThreshold(bodyId BodyId, sleepThreshold float32) {
+func Body_SetSleepThreshold(bodyId BodyId, sleepThreshold float32) {
 	C.b2Body_SetSleepThreshold(*cast[C.b2BodyId](&bodyId), C.float(sleepThreshold))
 }
 
 // Get the sleep threshold, usually in meters per second.
-func b2Body_GetSleepThreshold(bodyId BodyId) float32 {
+func Body_GetSleepThreshold(bodyId BodyId) float32 {
 	return float32(C.b2Body_GetSleepThreshold(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Returns true if this body is enabled
-func b2Body_IsEnabled(bodyId BodyId) bool {
+func Body_IsEnabled(bodyId BodyId) bool {
 	return bool(C.b2Body_IsEnabled(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Disable a body by removing it completely from the simulation. This is expensive.
-func b2Body_Disable(bodyId BodyId) {
+func Body_Disable(bodyId BodyId) {
 	C.b2Body_Disable(*cast[C.b2BodyId](&bodyId))
 }
 
 // Enable a body by adding it to the simulation. This is expensive.
-func b2Body_Enable(bodyId BodyId) {
+func Body_Enable(bodyId BodyId) {
 	C.b2Body_Enable(*cast[C.b2BodyId](&bodyId))
 }
 
 // Set the motion locks on this body.
-func b2Body_SetMotionLocks(bodyId BodyId, locks MotionLocks) {
+func Body_SetMotionLocks(bodyId BodyId, locks MotionLocks) {
 	C.b2Body_SetMotionLocks(*cast[C.b2BodyId](&bodyId), *cast[C.b2MotionLocks](&locks))
 }
 
 // Get the motion locks for this body.
-func b2Body_GetMotionLocks(bodyId BodyId) MotionLocks {
+func Body_GetMotionLocks(bodyId BodyId) MotionLocks {
 	r := C.b2Body_GetMotionLocks(*cast[C.b2BodyId](&bodyId))
 	return *cast[MotionLocks](&r)
 }
 
 // Set this body to be a bullet. A bullet does continuous collision detection
 // against dynamic bodies (but not other bullets).
-func b2Body_SetBullet(bodyId BodyId, flag bool) {
+func Body_SetBullet(bodyId BodyId, flag bool) {
 	C.b2Body_SetBullet(*cast[C.b2BodyId](&bodyId), C.bool(flag))
 }
 
 // Is this body a bullet?
-func b2Body_IsBullet(bodyId BodyId) bool {
+func Body_IsBullet(bodyId BodyId) bool {
 	return bool(C.b2Body_IsBullet(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Enable/disable contact events on all shapes.
 // @see b2ShapeDef::enableContactEvents
 // @warning changing this at runtime may cause mismatched begin/end touch events
-func b2Body_EnableContactEvents(bodyId BodyId, flag bool) {
+func Body_EnableContactEvents(bodyId BodyId, flag bool) {
 	C.b2Body_EnableContactEvents(*cast[C.b2BodyId](&bodyId), C.bool(flag))
 }
 
 // Enable/disable hit events on all shapes
 // @see b2ShapeDef::enableHitEvents
-func b2Body_EnableHitEvents(bodyId BodyId, flag bool) {
+func Body_EnableHitEvents(bodyId BodyId, flag bool) {
 	C.b2Body_EnableHitEvents(*cast[C.b2BodyId](&bodyId), C.bool(flag))
 }
 
 // Get the world that owns this body
-func b2Body_GetWorld(bodyId BodyId) WorldId {
+func Body_GetWorld(bodyId BodyId) WorldId {
 	r := C.b2Body_GetWorld(*cast[C.b2BodyId](&bodyId))
 	return *cast[WorldId](&r)
 }
 
 // Get the number of shapes on this body
-func b2Body_GetShapeCount(bodyId BodyId) int {
+func Body_GetShapeCount(bodyId BodyId) int {
 	return int(C.b2Body_GetShapeCount(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Get the shape ids for all shapes on this body, up to the provided capacity.
 // @returns the number of shape ids stored in the user array
-func b2Body_GetShapes(bodyId BodyId, shapeArray *ShapeId, capacity int) int {
+func Body_GetShapes(bodyId BodyId, shapeArray *ShapeId, capacity int) int {
 	return int(C.b2Body_GetShapes(*cast[C.b2BodyId](&bodyId), cast[C.b2ShapeId](shapeArray), C.int(capacity)))
 }
 
 // Get the number of joints on this body
-func b2Body_GetJointCount(bodyId BodyId) int {
+func Body_GetJointCount(bodyId BodyId) int {
 	return int(C.b2Body_GetJointCount(*cast[C.b2BodyId](&bodyId)))
 }
 
 // Get the joint ids for all joints on this body, up to the provided capacity
 // @returns the number of joint ids stored in the user array
-func b2Body_GetJoints(bodyId BodyId, jointArray *JointId, capacity int) int {
+func Body_GetJoints(bodyId BodyId, jointArray *JointId, capacity int) int {
 	return int(C.b2Body_GetJoints(*cast[C.b2BodyId](&bodyId), cast[C.b2JointId](jointArray), C.int(capacity)))
 }
 
 // Get the maximum capacity required for retrieving all the touching contacts on a body
-func b2Body_GetContactCapacity(bodyId BodyId) int {
+func Body_GetContactCapacity(bodyId BodyId) int {
 	return int(C.b2Body_GetContactCapacity(*cast[C.b2BodyId](&bodyId)))
 }
 
@@ -644,13 +647,13 @@ func b2Body_GetContactCapacity(bodyId BodyId) int {
 // @note Box2D uses speculative collision so some contact points may be separated.
 // @returns the number of elements filled in the provided array
 // @warning do not ignore the return value, it specifies the valid number of elements
-func b2Body_GetContactData(bodyId BodyId, contactData *ContactData, capacity int) int {
+func Body_GetContactData(bodyId BodyId, contactData *ContactData, capacity int) int {
 	return int(C.b2Body_GetContactData(*cast[C.b2BodyId](&bodyId), cast[C.b2ContactData](contactData), C.int(capacity)))
 }
 
 // Get the current world AABB that contains all the attached shapes. Note that this may not encompass the body origin.
 // If there are no shapes attached then the returned AABB is empty and centered on the body origin.
-func b2Body_ComputeAABB(bodyId BodyId) AABB {
+func Body_ComputeAABB(bodyId BodyId) AABB {
 	r := C.b2Body_ComputeAABB(*cast[C.b2BodyId](&bodyId))
 	return *cast[AABB](&r)
 }
@@ -743,141 +746,220 @@ func Shape_IsSensor(shapeId ShapeId) bool {
 
 /*
 // Set the user data for a shape
-B2_API void b2Shape_SetUserData( b2ShapeId shapeId, void* userData );
+B2_API void b2Shape_SetUserData( ShapeId shapeId, void* userData );
 
 // Get the user data for a shape. This is useful when you get a shape id
 // from an event or query.
-B2_API void* b2Shape_GetUserData( b2ShapeId shapeId );
-
+B2_API void* b2Shape_GetUserData( ShapeId shapeId );
+*/
 // Set the mass density of a shape, usually in kg/m^2.
 // This will optionally update the mass properties on the parent body.
 // @see b2ShapeDef::density, b2Body_ApplyMassFromShapes
-B2_API void b2Shape_SetDensity( b2ShapeId shapeId, float32 density, bool updateBodyMass );
+func Shape_SetDensity(shapeId ShapeId, density float32, updateBodyMass bool) {
+	C.b2Shape_SetDensity(*cast[C.b2ShapeId](&shapeId), C.float(density), C.bool(updateBodyMass))
+}
 
 // Get the density of a shape, usually in kg/m^2
-B2_API float32 b2Shape_GetDensity( b2ShapeId shapeId );
+func Shape_GetDensity(shapeId ShapeId) float32 {
+	return float32(C.b2Shape_GetDensity(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Set the friction on a shape
-B2_API void b2Shape_SetFriction( b2ShapeId shapeId, float32 friction );
+func Shape_SetFriction(shapeId ShapeId, friction float32) {
+	C.b2Shape_SetFriction(*cast[C.b2ShapeId](&shapeId), C.float(friction))
+}
 
 // Get the friction of a shape
-B2_API float32 b2Shape_GetFriction( b2ShapeId shapeId );
+func Shape_GetFriction(shapeId ShapeId) float32 {
+	return float32(C.b2Shape_GetFriction(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Set the shape restitution (bounciness)
-B2_API void b2Shape_SetRestitution( b2ShapeId shapeId, float32 restitution );
+func Shape_SetRestitution(shapeId ShapeId, restitution float32) {
+	C.b2Shape_SetRestitution(*cast[C.b2ShapeId](&shapeId), C.float(restitution))
+}
 
 // Get the shape restitution
-B2_API float32 b2Shape_GetRestitution( b2ShapeId shapeId );
+func Shape_GetRestitution(shapeId ShapeId) float32 {
+	return float32(C.b2Shape_GetRestitution(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Set the user material identifier
-B2_API void b2Shape_SetUserMaterial( b2ShapeId shapeId, uint64_t material );
+func Shape_SetUserMaterial(shapeId ShapeId, material uint64) {
+	C.b2Shape_SetUserMaterial(*cast[C.b2ShapeId](&shapeId), C.uint64_t(material))
+}
 
 // Get the user material identifier
-B2_API uint64_t b2Shape_GetUserMaterial( b2ShapeId shapeId );
+func Shape_GetUserMaterial(shapeId ShapeId) uint64 {
+	return uint64(C.b2Shape_GetUserMaterial(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Set the shape surface material
-B2_API void b2Shape_SetSurfaceMaterial( b2ShapeId shapeId, const b2SurfaceMaterial* surfaceMaterial );
+func Shape_SetSurfaceMaterial(shapeId ShapeId, surfaceMaterial *SurfaceMaterial) {
+	C.b2Shape_SetSurfaceMaterial(*cast[C.b2ShapeId](&shapeId), cast[C.b2SurfaceMaterial](surfaceMaterial))
+}
 
 // Get the shape surface material
-B2_API b2SurfaceMaterial b2Shape_GetSurfaceMaterial( b2ShapeId shapeId );
+func Shape_GetSurfaceMaterial(shapeId ShapeId) SurfaceMaterial {
+	r := C.b2Shape_GetSurfaceMaterial(*cast[C.b2ShapeId](&shapeId))
+	return *cast[SurfaceMaterial](&r)
+}
 
 // Get the shape filter
-B2_API b2Filter b2Shape_GetFilter( b2ShapeId shapeId );
+func Shape_GetFilter(shapeId ShapeId) Filter {
+	r := C.b2Shape_GetFilter(*cast[C.b2ShapeId](&shapeId))
+	return *cast[Filter](&r)
+}
 
 // Set the current filter. This is almost as expensive as recreating the shape. This may cause
 // contacts to be immediately destroyed. However contacts are not created until the next world step.
 // Sensor overlap state is also not updated until the next world step.
 // @see b2ShapeDef::filter
-B2_API void b2Shape_SetFilter( b2ShapeId shapeId, b2Filter filter );
+func Shape_SetFilter(shapeId ShapeId, filter Filter) {
+	C.b2Shape_SetFilter(*cast[C.b2ShapeId](&shapeId), *cast[C.b2Filter](&filter))
+}
 
 // Enable sensor events for this shape.
 // @see b2ShapeDef::enableSensorEvents
-B2_API void b2Shape_EnableSensorEvents( b2ShapeId shapeId, bool flag );
+func Shape_EnableSensorEvents(shapeId ShapeId, flag bool) {
+	C.b2Shape_EnableSensorEvents(*cast[C.b2ShapeId](&shapeId), C.bool(flag))
+}
 
 // Returns true if sensor events are enabled.
-B2_API bool b2Shape_AreSensorEventsEnabled( b2ShapeId shapeId );
+func Shape_AreSensorEventsEnabled(shapeId ShapeId) bool {
+	return bool(C.b2Shape_AreSensorEventsEnabled(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Enable contact events for this shape. Only applies to kinematic and dynamic bodies. Ignored for sensors.
 // @see b2ShapeDef::enableContactEvents
 // @warning changing this at run-time may lead to lost begin/end events
-B2_API void b2Shape_EnableContactEvents( b2ShapeId shapeId, bool flag );
+func Shape_EnableContactEvents(shapeId ShapeId, flag bool) {
+	C.b2Shape_EnableContactEvents(*cast[C.b2ShapeId](&shapeId), C.bool(flag))
+}
 
 // Returns true if contact events are enabled
-B2_API bool b2Shape_AreContactEventsEnabled( b2ShapeId shapeId );
+func Shape_AreContactEventsEnabled(shapeId ShapeId) bool {
+	return bool(C.b2Shape_AreContactEventsEnabled(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Enable pre-solve contact events for this shape. Only applies to dynamic bodies. These are expensive
 // and must be carefully handled due to multithreading. Ignored for sensors.
 // @see b2PreSolveFcn
-B2_API void b2Shape_EnablePreSolveEvents( b2ShapeId shapeId, bool flag );
+func Shape_EnablePreSolveEvents(shapeId ShapeId, flag bool) {
+	C.b2Shape_EnablePreSolveEvents(*cast[C.b2ShapeId](&shapeId), C.bool(flag))
+}
 
 // Returns true if pre-solve events are enabled
-B2_API bool b2Shape_ArePreSolveEventsEnabled( b2ShapeId shapeId );
+func Shape_ArePreSolveEventsEnabled(shapeId ShapeId) bool {
+	return bool(C.b2Shape_ArePreSolveEventsEnabled(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Enable contact hit events for this shape. Ignored for sensors.
 // @see b2WorldDef.hitEventThreshold
-B2_API void b2Shape_EnableHitEvents( b2ShapeId shapeId, bool flag );
+func Shape_EnableHitEvents(shapeId ShapeId, flag bool) {
+	C.b2Shape_EnableHitEvents(*cast[C.b2ShapeId](&shapeId), C.bool(flag))
+}
 
 // Returns true if hit events are enabled
-B2_API bool b2Shape_AreHitEventsEnabled( b2ShapeId shapeId );
+func Shape_AreHitEventsEnabled(shapeId ShapeId) bool {
+	return bool(C.b2Shape_AreHitEventsEnabled(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Test a point for overlap with a shape
-B2_API bool b2Shape_TestPoint( b2ShapeId shapeId, Vec2 point );
+func Shape_TestPoint(shapeId ShapeId, point Vec2) bool {
+	return bool(C.b2Shape_TestPoint(*cast[C.b2ShapeId](&shapeId), *cast[C.b2Vec2](&point)))
+}
 
 // Ray cast a shape directly
-B2_API b2CastOutput b2Shape_RayCast( b2ShapeId shapeId, const b2RayCastInput* input );
+func Shape_RayCast(shapeId ShapeId, input RayCastInput) CastOutput {
+	r := C.b2Shape_RayCast(*cast[C.b2ShapeId](&shapeId), cast[C.b2RayCastInput](&input))
+	return *cast[CastOutput](&r)
+}
 
 // Get a copy of the shape's circle. Asserts the type is correct.
-B2_API b2Circle b2Shape_GetCircle( b2ShapeId shapeId );
+func Shape_GetCircle(shapeId ShapeId) Circle {
+	r := C.b2Shape_GetCircle(*cast[C.b2ShapeId](&shapeId))
+	return *cast[Circle](&r)
+}
 
 // Get a copy of the shape's line segment. Asserts the type is correct.
-B2_API b2Segment b2Shape_GetSegment( b2ShapeId shapeId );
+func Shape_GetSegment(shapeId ShapeId) Segment {
+	r := C.b2Shape_GetSegment(*cast[C.b2ShapeId](&shapeId))
+	return *cast[Segment](&r)
+}
 
 // Get a copy of the shape's chain segment. These come from chain shapes.
 // Asserts the type is correct.
-B2_API b2ChainSegment b2Shape_GetChainSegment( b2ShapeId shapeId );
+func Shape_GetChainSegment(shapeId ShapeId) ChainSegment {
+	r := C.b2Shape_GetChainSegment(*cast[C.b2ShapeId](&shapeId))
+	return *cast[ChainSegment](&r)
+}
 
 // Get a copy of the shape's capsule. Asserts the type is correct.
-B2_API b2Capsule b2Shape_GetCapsule( b2ShapeId shapeId );
+func Shape_GetCapsule(shapeId ShapeId) Capsule {
+	r := C.b2Shape_GetCapsule(*cast[C.b2ShapeId](&shapeId))
+	return *cast[Capsule](&r)
+}
 
 // Get a copy of the shape's convex polygon. Asserts the type is correct.
-B2_API b2Polygon b2Shape_GetPolygon( b2ShapeId shapeId );
+func Shape_GetPolygon(shapeId ShapeId) Polygon {
+	r := C.b2Shape_GetPolygon(*cast[C.b2ShapeId](&shapeId))
+	return *cast[Polygon](&r)
+}
 
 // Allows you to change a shape to be a circle or update the current circle.
 // This does not modify the mass properties.
 // @see b2Body_ApplyMassFromShapes
-B2_API void b2Shape_SetCircle( b2ShapeId shapeId, const b2Circle* circle );
+func Shape_SetCircle(shapeId ShapeId, circle Circle) {
+	C.b2Shape_SetCircle(*cast[C.b2ShapeId](&shapeId), cast[C.b2Circle](&circle))
+}
 
 // Allows you to change a shape to be a capsule or update the current capsule.
 // This does not modify the mass properties.
 // @see b2Body_ApplyMassFromShapes
-B2_API void b2Shape_SetCapsule( b2ShapeId shapeId, const b2Capsule* capsule );
+func Shape_SetCapsule(shapeId ShapeId, capsule Capsule) {
+	C.b2Shape_SetCapsule(*cast[C.b2ShapeId](&shapeId), cast[C.b2Capsule](&capsule))
+}
 
 // Allows you to change a shape to be a segment or update the current segment.
-B2_API void b2Shape_SetSegment( b2ShapeId shapeId, const b2Segment* segment );
+func Shape_SetSegment(shapeId ShapeId, segment Segment) {
+	C.b2Shape_SetSegment(*cast[C.b2ShapeId](&shapeId), cast[C.b2Segment](&segment))
+}
 
 // Allows you to change a shape to be a polygon or update the current polygon.
 // This does not modify the mass properties.
 // @see b2Body_ApplyMassFromShapes
-B2_API void b2Shape_SetPolygon( b2ShapeId shapeId, const b2Polygon* polygon );
+func Shape_SetPolygon(shapeId ShapeId, polygon Polygon) {
+	C.b2Shape_SetPolygon(*cast[C.b2ShapeId](&shapeId), cast[C.b2Polygon](&polygon))
+}
 
 // Get the parent chain id if the shape type is a chain segment, otherwise
 // returns b2_nullChainId.
-B2_API b2ChainId b2Shape_GetParentChain( b2ShapeId shapeId );
+func Shape_GetParentChain(shapeId ShapeId) ChainId {
+	r := C.b2Shape_GetParentChain(*cast[C.b2ShapeId](&shapeId))
+	return *cast[ChainId](&r)
+}
 
 // Get the maximum capacity required for retrieving all the touching contacts on a shape
-B2_API int b2Shape_GetContactCapacity( b2ShapeId shapeId );
+func Shape_GetContactCapacity(shapeId ShapeId) int {
+	return int(C.b2Shape_GetContactCapacity(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Get the touching contact data for a shape. The provided shapeId will be either shapeIdA or shapeIdB on the contact data.
 // @note Box2D uses speculative collision so some contact points may be separated.
 // @returns the number of elements filled in the provided array
 // @warning do not ignore the return value, it specifies the valid number of elements
-B2_API int b2Shape_GetContactData( b2ShapeId shapeId, b2ContactData* contactData, int capacity );
+func Shape_GetContactData(shapeId ShapeId, contactData *ContactData, capacity int) int {
+	return int(C.b2Shape_GetContactData(*cast[C.b2ShapeId](&shapeId), cast[C.b2ContactData](contactData), C.int(capacity)))
+}
 
 // Get the maximum capacity required for retrieving all the overlapped shapes on a sensor shape.
 // This returns 0 if the provided shape is not a sensor.
 // @param shapeId the id of a sensor shape
 // @returns the required capacity to get all the overlaps in b2Shape_GetSensorData
-B2_API int b2Shape_GetSensorCapacity( b2ShapeId shapeId );
+func Shape_GetSensorCapacity(shapeId ShapeId) int {
+	return int(C.b2Shape_GetSensorCapacity(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Get the overlap data for a sensor shape computed the previous world step.
 // @param shapeId the id of a sensor shape
@@ -886,17 +968,28 @@ B2_API int b2Shape_GetSensorCapacity( b2ShapeId shapeId );
 // @returns the number of elements filled in the provided array
 // @warning do not ignore the return value, it specifies the valid number of elements
 // @warning overlaps may contain destroyed shapes so use b2Shape_IsValid to confirm each overlap
-B2_API int b2Shape_GetSensorData( b2ShapeId shapeId, b2ShapeId* visitorIds, int capacity );
+func Shape_GetSensorData(shapeId ShapeId, visitorIds *ShapeId, capacity int) int {
+	return int(C.b2Shape_GetSensorData(*cast[C.b2ShapeId](&shapeId), cast[C.b2ShapeId](visitorIds), C.int(capacity)))
+}
 
 // Get the current world AABB
-B2_API b2AABB b2Shape_GetAABB( b2ShapeId shapeId );
+func Shape_GetAABB(shapeId ShapeId) AABB {
+	r := C.b2Shape_GetAABB(*cast[C.b2ShapeId](&shapeId))
+	return *cast[AABB](&r)
+}
 
 // Compute the mass data for a shape
-B2_API b2MassData b2Shape_ComputeMassData( b2ShapeId shapeId );
+func Shape_ComputeMassData(shapeId ShapeId) MassData {
+	r := C.b2Shape_ComputeMassData(*cast[C.b2ShapeId](&shapeId))
+	return *cast[MassData](&r)
+}
 
 // Get the closest point on a shape to a target point. Target and result are in world space.
 // todo need sample
-B2_API Vec2 b2Shape_GetClosestPoint( b2ShapeId shapeId, Vec2 target );
+func Shape_GetClosestPoint(shapeId ShapeId, target Vec2) Vec2 {
+	r := C.b2Shape_GetClosestPoint(*cast[C.b2ShapeId](&shapeId), *cast[C.b2Vec2](&target))
+	return *cast[Vec2](&r)
+}
 
 // Apply a wind force to the body for this shape using the density of air. This considers
 // the projected area of the shape in the wind direction. This also considers
@@ -906,8 +999,11 @@ B2_API Vec2 b2Shape_GetClosestPoint( b2ShapeId shapeId, Vec2 target );
 // @param drag the drag coefficient, the force that opposes the relative velocity
 // @param lift the lift coefficient, the force that is perpendicular to the relative velocity
 // @param wake should this wake the body
-B2_API void b2Shape_ApplyWind( b2ShapeId shapeId, Vec2 wind, float32 drag, float32 lift, bool wake );
+func Shape_ApplyWind(shapeId ShapeId, wind Vec2, drag float32, lift float32, wake bool) {
+	C.b2Shape_ApplyWind(*cast[C.b2ShapeId](&shapeId), *cast[C.b2Vec2](&wind), C.float(drag), C.float(lift), C.bool(wake))
+}
 
+/*
 // Chain Shape
 
 // Create a chain shape
@@ -925,17 +1021,17 @@ B2_API int b2Chain_GetSegmentCount( b2ChainId chainId );
 
 // Fill a user array with chain segment shape ids up to the specified capacity. Returns
 // the actual number of segments returned.
-B2_API int b2Chain_GetSegments( b2ChainId chainId, b2ShapeId* segmentArray, int capacity );
+B2_API int b2Chain_GetSegments( b2ChainId chainId, ShapeId* segmentArray, int capacity );
 
 // Get the number of materials used on this chain. Must be 1 or the number of segments.
 B2_API int b2Chain_GetSurfaceMaterialCount( b2ChainId chainId );
 
 // Set a chain material. If the chain has only one material, this material is applied to all
 // segments. Otherwise it is applied to a single segment.
-B2_API void b2Chain_SetSurfaceMaterial( b2ChainId chainId, const b2SurfaceMaterial* material, int materialIndex );
+B2_API void b2Chain_SetSurfaceMaterial( b2ChainId chainId, const SurfaceMaterial* material, int materialIndex );
 
 // Get a chain material by index.
-B2_API b2SurfaceMaterial b2Chain_GetSurfaceMaterial( b2ChainId chainId, int materialIndex );
+B2_API SurfaceMaterial b2Chain_GetSurfaceMaterial( b2ChainId chainId, int materialIndex );
 
 // Chain identifier validation. Provides validation for up to 64K allocations.
 B2_API bool b2Chain_IsValid( b2ChainId id );
@@ -1188,8 +1284,8 @@ B2_API float32 b2MotorJoint_GetMaxSpringTorque( b2JointId jointId );
 //
 
 // Create a filter joint.
-// @see b2FilterJointDef for details
-B2_API b2JointId b2CreateFilterJoint( b2WorldId worldId, const b2FilterJointDef* def );
+// @see FilterJointDef for details
+B2_API b2JointId b2CreateFilterJoint( b2WorldId worldId, const FilterJointDef* def );
 
 //
 // @defgroup prismatic_joint Prismatic Joint
