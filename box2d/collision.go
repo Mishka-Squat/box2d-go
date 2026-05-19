@@ -470,7 +470,7 @@ type b2TOIOutput struct {
 // non-tunneling collisions. If you change the time interval, you should call this function
 // again.
 B2_API b2TOIOutput b2TimeOfImpact( const b2TOIInput* input );
-
+*/
 //
 // @defgroup collision Collision
 // @brief Functions for colliding pairs of shapes
@@ -481,70 +481,70 @@ B2_API b2TOIOutput b2TimeOfImpact( const b2TOIInput* input );
 // Box2D uses speculative collision so some contact points may be separated.
 // You may use the totalNormalImpulse to determine if there was an interaction during
 // the time step.
-type b2ManifoldPoint struct {
+type ManifoldPoint struct {
 	// Location of the contact point in world space when first clipped. Subject to precision
 	// loss at large coordinates. This point lags behind when contact recycling is used.
 	// @note Should only be used for debugging. Use anchorA and/or anchorB for game logic.
-	Vec2 clipPoint;
+	ClipPoint Vec2
 
 	// Location of the contact point relative to shapeA's origin in world space.
 	// This can be converted to a world point using:
 	// Vec2 worldPointA = b2Add(b2Body_GetCenter(myBodyIdA), anchorA);
 	// @note When used internally to the Box2D solver, this is relative to the body center of mass.
-	Vec2 anchorA;
+	AnchorA Vec2
 
 	// Location of the contact point relative to shapeB's origin in world space
 	// This can be converted to a world point using:
 	// Vec2 worldPointB = b2Add(b2Body_GetCenter(myBodyIdB), anchorB);
 	// @note When used internally to the Box2D solver, this is relative to the body center of mass.
-	Vec2 anchorB;
+	AnchorB Vec2
 
 	// The separation of the contact point, negative if penetrating
-	float32 separation;
+	Separation float32
 
 	// Cached separation used for contact recycling
-	float32 baseSeparation;
+	BaseSeparation float32
 
 	// The impulse along the manifold normal vector.
-	float32 normalImpulse;
+	NormalImpulse float32
 
 	// The friction impulse
-	float32 tangentImpulse;
+	TangentImpulse float32
 
 	// The total normal impulse applied across sub-stepping and restitution. This is important
 	// to identify speculative contact points that had an interaction in the time step.
 	// This includes the warm starting impulse, the sub-step delta impulse, and the restitution
 	// impulse.
-	float32 totalNormalImpulse;
+	TotalNormalImpulse float32
 
 	// Relative normal velocity pre-solve. Used for hit events. If the normal impulse is
 	// zero then there was no hit. Negative means shapes are approaching.
-	float32 normalVelocity;
+	NormalVelocity float32
 
 	// Uniquely identifies a contact point between two shapes
-	uint16_t id;
+	Id uint16
 
 	// Did this contact point exist the previous step?
-	bool persisted;
-} b2ManifoldPoint;
+	Persisted bool
+}
 
 // A contact manifold describes the contact points between colliding shapes.
 // @note Box2D uses speculative collision so some contact points may be separated.
-type b2Manifold struct {
+type Manifold struct {
 	// The unit normal vector in world space, points from shape A to bodyB
-	Vec2 normal;
+	Normal Vec2
 
 	// Angular impulse applied for rolling resistance. N * m * s = kg * m^2 / s
-	float32 rollingImpulse;
+	RollingImpulse float32
 
 	// The manifold points, up to two are possible in 2D
-	b2ManifoldPoint points[2];
+	Points [2]ManifoldPoint
 
 	// The number of contacts points, will be 0, 1, or 2
-	int pointCount;
+	PointCount int
+}
 
-} b2Manifold;
-
+/*
 // Compute the contact manifold between two circles
 B2_API b2Manifold b2CollideCircles( const b2Circle* circleA, b2Transform xfA, const b2Circle* circleB, b2Transform xfB );
 
@@ -589,7 +589,7 @@ B2_API b2Manifold b2CollideChainSegmentAndCapsule( const b2ChainSegment* segment
 // Compute the contact manifold between a chain segment and a rounded polygon
 B2_API b2Manifold b2CollideChainSegmentAndPolygon( const b2ChainSegment* segmentA, b2Transform xfA, const Polygon* polygonB,
 												   b2Transform xfB, b2SimplexCache* cache );
-
+*/
 //
 // @defgroup tree Dynamic Tree
 // The dynamic tree is a binary AABB tree to organize and query large numbers of geometric objects
@@ -609,50 +609,51 @@ B2_API b2Manifold b2CollideChainSegmentAndPolygon( const b2ChainSegment* segment
 
 // The dynamic tree structure. This should be considered private data.
 // It is placed here for performance reasons.
-type b2DynamicTree struct {
+type DynamicTree struct {
 	// The tree nodes
-	struct b2TreeNode* nodes;
+	nodes any //*TreeNode
 
 	// The root index
-	int32_t root;
+	Root int32
 
 	// The number of nodes
-	int32_t nodeCount;
+	NodeCount int32
 
 	// The allocated node space
-	int32_t nodeCapacity;
+	NodeCapacity int32
 
 	// Node free list
-	int32_t freeList;
+	FreeList int32
 
 	// Number of proxies created
-	int32_t proxyCount;
+	ProxyCount int32
 
 	// Leaf indices for rebuild
-	int32_t* leafIndices;
+	LeafIndices *int32
 
 	// Leaf bounding boxes for rebuild
-	b2AABB* leafBoxes;
+	LeafBoxes *AABB
 
 	// Leaf bounding box centers for rebuild
-	Vec2* leafCenters;
+	LeafCenters *Vec2
 
 	// Bins for sorting during rebuild
-	int32_t* binIndices;
+	BinIndices *int32
 
 	// Allocated space for rebuilding
-	int32_t rebuildCapacity;
-} b2DynamicTree;
+	RebuildCapacity *int32
+}
 
 // These are performance results returned by dynamic tree queries.
-type b2TreeStats struct {
+type TreeStats struct {
 	// Number of internal nodes visited during the query
-	int nodeVisits;
+	NodeVisits int32
 
 	// Number of leaf nodes visited during the query
-	int leafVisits;
-} b2TreeStats;
+	LeafVisits int32
+}
 
+/*
 // Constructing the tree initializes the node pool.
 B2_API b2DynamicTree b2DynamicTree_Create( int proxyCapacity );
 

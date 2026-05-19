@@ -22,8 +22,7 @@ func DestroyWorld(id WorldId) {
 
 // World id validation. Provides validation for up to 64K allocations.
 func World_IsValid(id WorldId) bool {
-	r := C.b2World_IsValid(*cast[C.b2WorldId](&id))
-	return bool(r)
+	return bool(C.b2World_IsValid(*cast[C.b2WorldId](&id)))
 }
 
 // Simulate a world for one time step. This performs collision detection, integration, and constraint solution.
@@ -63,17 +62,23 @@ func World_GetJointEvents(id WorldId) JointEvents {
 	return *cast[JointEvents](&r)
 }
 
-/*
+// https://stackoverflow.com/questions/37157379/passing-function-pointer-to-the-c-code-using-cgo
 // Overlap test for all shapes that *potentially* overlap the provided AABB
-func b2World_OverlapAABB(id WorldId, aabb b2AABB, filter QueryFilter, fcn b2OverlapResultFcn, context any) b2TreeStats {
-
+func World_OverlapAABB(id WorldId, aabb AABB, filter QueryFilter, fcn OverlapResultFcn, context any) TreeStats {
+	cid := *cast[C.b2WorldId](&id)
+	caabb := *cast[C.b2AABB](&aabb)
+	cfilter := *cast[C.b2QueryFilter](&filter)
+	//cfcn := *cast[C.b2OverlapResultFcn](fcn)
+	r := C.b2World_OverlapAABB(cid, caabb, cfilter, nil, nil)
+	return *cast[TreeStats](&r)
 }
 
 // Overlap test for all shapes that overlap the provided shape proxy.
-func b2World_OverlapShape(id WorldId, proxy *b2ShapeProxy, filter QueryFilter, fcn b2OverlapResultFcn, context any) b2TreeStats {
+//func b2World_OverlapShape(id WorldId, proxy *ShapeProxy, filter QueryFilter, fcn OverlapResultFcn, context any) TreeStats {
+//
+//}
 
-}
-
+/*
 // Cast a ray into the world to collect shapes in the path of the ray.
 // Your callback function controls whether you get the closest point, any point, or n-points.
 // @note The callback function may receive shapes in any order
@@ -84,21 +89,21 @@ func b2World_OverlapShape(id WorldId, proxy *b2ShapeProxy, filter QueryFilter, f
 // @param fcn A user implemented callback function
 // @param context A user context that is passed along to the callback function
 //	@return traversal performance counters
-B2_API b2TreeStats b2World_CastRay( b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter,
+B2_API b2TreeStats b2World_CastRay( b2WorldId worldId, Vec2 origin, Vec2 translation, b2QueryFilter filter,
 									b2CastResultFcn* fcn, void* context );
 
 // Cast a ray into the world to collect the closest hit. This is a convenience function. Ignores initial overlap.
 // This is less general than b2World_CastRay() and does not allow for custom filtering.
-B2_API b2RayResult b2World_CastRayClosest( b2WorldId worldId, b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter );
+B2_API b2RayResult b2World_CastRayClosest( b2WorldId worldId, Vec2 origin, Vec2 translation, b2QueryFilter filter );
 
 // Cast a shape through the world. Similar to a cast ray except that a shape is cast instead of a point.
 //	@see b2World_CastRay
-B2_API b2TreeStats b2World_CastShape( b2WorldId worldId, const b2ShapeProxy* proxy, b2Vec2 translation, b2QueryFilter filter,
+B2_API b2TreeStats b2World_CastShape( b2WorldId worldId, const b2ShapeProxy* proxy, Vec2 translation, b2QueryFilter filter,
 									  b2CastResultFcn* fcn, void* context );
 
 // Cast a capsule mover through the world. This is a special shape cast that handles sliding along other shapes while reducing
 // clipping.
-B2_API float b2World_CastMover( b2WorldId worldId, const b2Capsule* mover, b2Vec2 translation, b2QueryFilter filter );
+B2_API float32 b2World_CastMover( b2WorldId worldId, const b2Capsule* mover, Vec2 translation, b2QueryFilter filter );
 
 // Collide a capsule mover with the world, gathering collision planes that can be fed to b2SolvePlanes. Useful for
 // kinematic character movement.
@@ -125,18 +130,18 @@ B2_API bool b2World_IsContinuousEnabled( b2WorldId worldId );
 // Adjust the restitution threshold. It is recommended not to make this value very small
 // because it will prevent bodies from sleeping. Usually in meters per second.
 // @see b2WorldDef
-B2_API void b2World_SetRestitutionThreshold( b2WorldId worldId, float value );
+B2_API void b2World_SetRestitutionThreshold( b2WorldId worldId, float32 value );
 
 // Get the the restitution speed threshold. Usually in meters per second.
-B2_API float b2World_GetRestitutionThreshold( b2WorldId worldId );
+B2_API float32 b2World_GetRestitutionThreshold( b2WorldId worldId );
 
 // Adjust the hit event threshold. This controls the collision speed needed to generate a b2ContactHitEvent.
 // Usually in meters per second.
 // @see b2WorldDef::hitEventThreshold
-B2_API void b2World_SetHitEventThreshold( b2WorldId worldId, float value );
+B2_API void b2World_SetHitEventThreshold( b2WorldId worldId, float32 value );
 
 // Get the the hit event speed threshold. Usually in meters per second.
-B2_API float b2World_GetHitEventThreshold( b2WorldId worldId );
+B2_API float32 b2World_GetHitEventThreshold( b2WorldId worldId );
 
 // Register the custom filter callback. This is optional.
 B2_API void b2World_SetCustomFilterCallback( b2WorldId worldId, b2CustomFilterFcn* fcn, void* context );
@@ -147,10 +152,10 @@ B2_API void b2World_SetPreSolveCallback( b2WorldId worldId, b2PreSolveFcn* fcn, 
 // Set the gravity vector for the entire world. Box2D has no concept of an up direction and this
 // is left as a decision for the application. Usually in m/s^2.
 // @see b2WorldDef
-B2_API void b2World_SetGravity( b2WorldId worldId, b2Vec2 gravity );
+B2_API void b2World_SetGravity( b2WorldId worldId, Vec2 gravity );
 
 // Get the gravity vector
-B2_API b2Vec2 b2World_GetGravity( b2WorldId worldId );
+B2_API Vec2 b2World_GetGravity( b2WorldId worldId );
 
 // Apply a radial explosion
 // @param worldId The world id
@@ -163,20 +168,20 @@ B2_API void b2World_Explode( b2WorldId worldId, const b2ExplosionDef* explosionD
 // @param dampingRatio The contact bounciness with 1 being critical damping (non-dimensional)
 // @param pushSpeed The maximum contact constraint push out speed (meters per second)
 // @note Advanced feature
-B2_API void b2World_SetContactTuning( b2WorldId worldId, float hertz, float dampingRatio, float pushSpeed );
+B2_API void b2World_SetContactTuning( b2WorldId worldId, float32 hertz, float32 dampingRatio, float32 pushSpeed );
 
 // Set the contact point recycling distance. Setting this to zero disables contact point recycling.
 // Usually in meters.
-B2_API void b2World_SetContactRecycleDistance( b2WorldId worldId, float recycleDistance );
+B2_API void b2World_SetContactRecycleDistance( b2WorldId worldId, float32 recycleDistance );
 
 // Get the contact point recycling distance. Usually in meters.
-B2_API float b2World_GetContactRecycleDistance( b2WorldId worldId );
+B2_API float32 b2World_GetContactRecycleDistance( b2WorldId worldId );
 
 // Set the maximum linear speed. Usually in m/s.
-B2_API void b2World_SetMaximumLinearSpeed( b2WorldId worldId, float maximumLinearSpeed );
+B2_API void b2World_SetMaximumLinearSpeed( b2WorldId worldId, float32 maximumLinearSpeed );
 
 // Get the maximum linear speed. Usually in m/s.
-B2_API float b2World_GetMaximumLinearSpeed( b2WorldId worldId );
+B2_API float32 b2World_GetMaximumLinearSpeed( b2WorldId worldId );
 
 // Enable/disable constraint warm starting. Advanced feature for testing. Disabling
 // warm starting greatly reduces stability and provides no performance gain.
@@ -248,8 +253,7 @@ func DestroyBody(id BodyId) {
 // Body identifier validation. A valid body exists in a world and is non-null.
 // This can be used to detect orphaned ids. Provides validation for up to 64K allocations.
 func Body_IsValid(id BodyId) bool {
-	r := C.b2Body_IsValid(*cast[C.b2BodyId](&id))
-	return bool(r)
+	return bool(C.b2Body_IsValid(*cast[C.b2BodyId](&id)))
 }
 
 /*
@@ -285,38 +289,63 @@ func Body_GetRotation(bodyId BodyId) Rot {
 	return *cast[Rot](&r)
 }
 
-/*
 // Get the world transform of a body.
-B2_API b2Transform b2Body_GetTransform( b2BodyId bodyId );
+func b2Body_GetTransform(bodyId BodyId) Transform {
+	r := C.b2Body_GetTransform(*cast[C.b2BodyId](&bodyId))
+	return *cast[Transform](&r)
+}
 
 // Set the world transform of a body. This acts as a teleport and is fairly expensive.
 // @note Generally you should create a body with then intended transform.
 // @see b2BodyDef::position and b2BodyDef::rotation
-B2_API void b2Body_SetTransform( b2BodyId bodyId, b2Vec2 position, b2Rot rotation );
+func b2Body_SetTransform(bodyId BodyId, position Vec2, rotation Rot) {
+	C.b2Body_SetTransform(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&position), *cast[C.b2Rot](&rotation))
+}
 
 // Get a local point on a body given a world point
-B2_API b2Vec2 b2Body_GetLocalPoint( b2BodyId bodyId, b2Vec2 worldPoint );
+func b2Body_GetLocalPoint(bodyId BodyId, worldPoint Vec2) Vec2 {
+	r := C.b2Body_GetLocalPoint(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&worldPoint))
+	return *cast[Vec2](&r)
+}
 
 // Get a world point on a body given a local point
-B2_API b2Vec2 b2Body_GetWorldPoint( b2BodyId bodyId, b2Vec2 localPoint );
+func b2Body_GetWorldPoint(bodyId BodyId, localPoint Vec2) Vec2 {
+	r := C.b2Body_GetWorldPoint(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&localPoint))
+	return *cast[Vec2](&r)
+}
 
 // Get a local vector on a body given a world vector
-B2_API b2Vec2 b2Body_GetLocalVector( b2BodyId bodyId, b2Vec2 worldVector );
+func b2Body_GetLocalVector(bodyId BodyId, worldVector Vec2) Vec2 {
+	r := C.b2Body_GetLocalVector(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&worldVector))
+	return *cast[Vec2](&r)
+}
 
 // Get a world vector on a body given a local vector
-B2_API b2Vec2 b2Body_GetWorldVector( b2BodyId bodyId, b2Vec2 localVector );
+func b2Body_GetWorldVector(bodyId BodyId, localVector Vec2) Vec2 {
+	r := C.b2Body_GetWorldVector(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&localVector))
+	return *cast[Vec2](&r)
+}
 
 // Get the linear velocity of a body's center of mass. Usually in meters per second.
-B2_API b2Vec2 b2Body_GetLinearVelocity( b2BodyId bodyId );
+func b2Body_GetLinearVelocity(bodyId BodyId) Vec2 {
+	r := C.b2Body_GetLinearVelocity(*cast[C.b2BodyId](&bodyId))
+	return *cast[Vec2](&r)
+}
 
 // Get the angular velocity of a body in radians per second
-B2_API float b2Body_GetAngularVelocity( b2BodyId bodyId );
+func b2Body_GetAngularVelocity(bodyId BodyId) float32 {
+	return float32(C.b2Body_GetAngularVelocity(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Set the linear velocity of a body. Usually in meters per second.
-B2_API void b2Body_SetLinearVelocity( b2BodyId bodyId, b2Vec2 linearVelocity );
+func b2Body_SetLinearVelocity(bodyId BodyId, linearVelocity Vec2) {
+	C.b2Body_SetLinearVelocity(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&linearVelocity))
+}
 
 // Set the angular velocity of a body in radians per second
-B2_API void b2Body_SetAngularVelocity( b2BodyId bodyId, float angularVelocity );
+func b2Body_SetAngularVelocity(bodyId BodyId, angularVelocity float32) {
+	C.b2Body_SetAngularVelocity(*cast[C.b2BodyId](&bodyId), C.float(angularVelocity))
+}
 
 // Set the velocity to reach the given transform after a given time step.
 // The result will be close but maybe not exact. This is meant for kinematic bodies.
@@ -326,13 +355,21 @@ B2_API void b2Body_SetAngularVelocity( b2BodyId bodyId, float angularVelocity );
 // @param target The target transform for the body
 // @param timeStep The time step of the next call to b2World_Step
 // @param wake Option to wake the body or not
-B2_API void b2Body_SetTargetTransform( b2BodyId bodyId, b2Transform target, float timeStep, bool wake );
+func b2Body_SetTargetTransform(bodyId BodyId, target Transform, timeStep float32, wake bool) {
+	C.b2Body_SetTargetTransform(*cast[C.b2BodyId](&bodyId), *cast[C.b2Transform](&target), C.float(timeStep), C.bool(wake))
+}
 
 // Get the linear velocity of a local point attached to a body. Usually in meters per second.
-B2_API b2Vec2 b2Body_GetLocalPointVelocity( b2BodyId bodyId, b2Vec2 localPoint );
+func b2Body_GetLocalPointVelocity(bodyId BodyId, localPoint Vec2) Vec2 {
+	r := C.b2Body_GetLocalPointVelocity(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&localPoint))
+	return *cast[Vec2](&r)
+}
 
 // Get the linear velocity of a world point attached to a body. Usually in meters per second.
-B2_API b2Vec2 b2Body_GetWorldPointVelocity( b2BodyId bodyId, b2Vec2 worldPoint );
+func b2Body_GetWorldPointVelocity(bodyId BodyId, worldPoint Vec2) Vec2 {
+	r := C.b2Body_GetWorldPointVelocity(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&worldPoint))
+	return *cast[Vec2](&r)
+}
 
 // Apply a force at a world point. If the force is not applied at the center of mass,
 // it will generate a torque and affect the angular velocity. This optionally wakes up the body.
@@ -341,27 +378,35 @@ B2_API b2Vec2 b2Body_GetWorldPointVelocity( b2BodyId bodyId, b2Vec2 worldPoint )
 // @param force The world force vector, usually in newtons (N)
 // @param point The world position of the point of application
 // @param wake Option to wake up the body
-B2_API void b2Body_ApplyForce( b2BodyId bodyId, b2Vec2 force, b2Vec2 point, bool wake );
+func b2Body_ApplyForce(bodyId BodyId, force Vec2, point Vec2, wake bool) {
+	C.b2Body_ApplyForce(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&force), *cast[C.b2Vec2](&point), C.bool(wake))
+}
 
 // Apply a force to the center of mass. This optionally wakes up the body.
 // The force is ignored if the body is not awake.
 // @param bodyId The body id
 // @param force the world force vector, usually in newtons (N).
 // @param wake also wake up the body
-B2_API void b2Body_ApplyForceToCenter( b2BodyId bodyId, b2Vec2 force, bool wake );
+func b2Body_ApplyForceToCenter(bodyId BodyId, force Vec2, wake bool) {
+	C.b2Body_ApplyForceToCenter(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&force), C.bool(wake))
+}
 
 // Apply a torque. This affects the angular velocity without affecting the linear velocity.
 // This optionally wakes the body. The torque is ignored if the body is not awake.
 // @param bodyId The body id
 // @param torque about the z-axis (out of the screen), usually in N*m.
 // @param wake also wake up the body
-B2_API void b2Body_ApplyTorque( b2BodyId bodyId, float torque, bool wake );
+func b2Body_ApplyTorque(bodyId BodyId, torque float32, wake bool) {
+	C.b2Body_ApplyTorque(*cast[C.b2BodyId](&bodyId), C.float(torque), C.bool(wake))
+}
 
 // Clear the force and torque on this body. Forces and torques are automatically cleared after each world
 // step. So this only needs to be called if the application wants to remove the effect of previous
 // calls to apply forces and torques before the world step is called.
 // @param bodyId The body id
-B2_API void b2Body_ClearForces( b2BodyId bodyId );
+func b2Body_ClearForces(bodyId BodyId) {
+	C.b2Body_ClearForces(*cast[C.b2BodyId](&bodyId))
+}
 
 // Apply an impulse at a point. This immediately modifies the velocity.
 // It also modifies the angular velocity if the point of application
@@ -373,7 +418,9 @@ B2_API void b2Body_ClearForces( b2BodyId bodyId );
 // @param wake also wake up the body
 // @warning This should be used for one-shot impulses. If you need a steady force,
 // use a force instead, which will work better with the sub-stepping solver.
-B2_API void b2Body_ApplyLinearImpulse( b2BodyId bodyId, b2Vec2 impulse, b2Vec2 point, bool wake );
+func b2Body_ApplyLinearImpulse(bodyId BodyId, impulse Vec2, point Vec2, wake bool) {
+	C.b2Body_ApplyLinearImpulse(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&impulse), *cast[C.b2Vec2](&point), C.bool(wake))
+}
 
 // Apply an impulse to the center of mass. This immediately modifies the velocity.
 // The impulse is ignored if the body is not awake. This optionally wakes the body.
@@ -382,7 +429,9 @@ B2_API void b2Body_ApplyLinearImpulse( b2BodyId bodyId, b2Vec2 impulse, b2Vec2 p
 // @param wake also wake up the body
 // @warning This should be used for one-shot impulses. If you need a steady force,
 // use a force instead, which will work better with the sub-stepping solver.
-B2_API void b2Body_ApplyLinearImpulseToCenter( b2BodyId bodyId, b2Vec2 impulse, bool wake );
+func b2Body_ApplyLinearImpulseToCenter(bodyId BodyId, impulse Vec2, wake bool) {
+	C.b2Body_ApplyLinearImpulseToCenter(*cast[C.b2BodyId](&bodyId), *cast[C.b2Vec2](&impulse), C.bool(wake))
+}
 
 // Apply an angular impulse. The impulse is ignored if the body is not awake.
 // This optionally wakes the body.
@@ -391,27 +440,44 @@ B2_API void b2Body_ApplyLinearImpulseToCenter( b2BodyId bodyId, b2Vec2 impulse, 
 // @param wake also wake up the body
 // @warning This should be used for one-shot impulses. If you need a steady torque,
 // use a torque instead, which will work better with the sub-stepping solver.
-B2_API void b2Body_ApplyAngularImpulse( b2BodyId bodyId, float impulse, bool wake );
+func b2Body_ApplyAngularImpulse(bodyId BodyId, impulse float32, wake bool) {
+	C.b2Body_ApplyAngularImpulse(*cast[C.b2BodyId](&bodyId), C.float(impulse), C.bool(wake))
+}
 
 // Get the mass of the body, usually in kilograms
-B2_API float b2Body_GetMass( b2BodyId bodyId );
+func b2Body_GetMass(bodyId BodyId) float32 {
+	return float32(C.b2Body_GetMass(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Get the rotational inertia of the body, usually in kg*m^2
-B2_API float b2Body_GetRotationalInertia( b2BodyId bodyId );
+func b2Body_GetRotationalInertia(bodyId BodyId) float32 {
+	return float32(C.b2Body_GetRotationalInertia(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Get the center of mass position of the body in local space
-B2_API b2Vec2 b2Body_GetLocalCenterOfMass( b2BodyId bodyId );
+func b2Body_GetLocalCenterOfMass(bodyId BodyId) Vec2 {
+	r := C.b2Body_GetLocalCenterOfMass(*cast[C.b2BodyId](&bodyId))
+	return *cast[Vec2](&r)
+}
 
 // Get the center of mass position of the body in world space
-B2_API b2Vec2 b2Body_GetWorldCenterOfMass( b2BodyId bodyId );
+func b2Body_GetWorldCenterOfMass(bodyId BodyId) Vec2 {
+	r := C.b2Body_GetWorldCenterOfMass(*cast[C.b2BodyId](&bodyId))
+	return *cast[Vec2](&r)
+}
 
 // Override the body's mass properties. Normally this is computed automatically using the
 // shape geometry and density. This information is lost if a shape is added or removed or if the
 // body type changes.
-B2_API void b2Body_SetMassData( b2BodyId bodyId, b2MassData massData );
+func b2Body_SetMassData(bodyId BodyId, massData MassData) {
+	C.b2Body_SetMassData(*cast[C.b2BodyId](&bodyId), *cast[C.b2MassData](&massData))
+}
 
 // Get the mass data for a body
-B2_API b2MassData b2Body_GetMassData( b2BodyId bodyId );
+func b2Body_GetMassData(bodyId BodyId) MassData {
+	r := C.b2Body_GetMassData(*cast[C.b2BodyId](&bodyId))
+	return *cast[MassData](&r)
+}
 
 // This updates the mass properties to the sum of the mass properties of the shapes.
 // This normally does not need to be called unless you called SetMassData to override
@@ -419,111 +485,176 @@ B2_API b2MassData b2Body_GetMassData( b2BodyId bodyId );
 // You may also use this when automatic mass computation has been disabled.
 // You should call this regardless of body type.
 // Note that sensor shapes may have mass.
-B2_API void b2Body_ApplyMassFromShapes( b2BodyId bodyId );
+func b2Body_ApplyMassFromShapes(bodyId BodyId) {
+	C.b2Body_ApplyMassFromShapes(*cast[C.b2BodyId](&bodyId))
+}
 
 // Adjust the linear damping. Normally this is set in b2BodyDef before creation.
-B2_API void b2Body_SetLinearDamping( b2BodyId bodyId, float linearDamping );
+func b2Body_SetLinearDamping(bodyId BodyId, linearDamping float32) {
+	C.b2Body_SetLinearDamping(*cast[C.b2BodyId](&bodyId), C.float(linearDamping))
+}
 
 // Get the current linear damping.
-B2_API float b2Body_GetLinearDamping( b2BodyId bodyId );
+func b2Body_GetLinearDamping(bodyId BodyId) float32 {
+	return float32(C.b2Body_GetLinearDamping(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Adjust the angular damping. Normally this is set in b2BodyDef before creation.
-B2_API void b2Body_SetAngularDamping( b2BodyId bodyId, float angularDamping );
+func b2Body_SetAngularDamping(bodyId BodyId, angularDamping float32) {
+	C.b2Body_SetAngularDamping(*cast[C.b2BodyId](&bodyId), C.float(angularDamping))
+}
 
 // Get the current angular damping.
-B2_API float b2Body_GetAngularDamping( b2BodyId bodyId );
+func b2Body_GetAngularDamping(bodyId BodyId) float32 {
+	return float32(C.b2Body_GetAngularDamping(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Adjust the gravity scale. Normally this is set in b2BodyDef before creation.
 // @see b2BodyDef::gravityScale
-B2_API void b2Body_SetGravityScale( b2BodyId bodyId, float gravityScale );
+func b2Body_SetGravityScale(bodyId BodyId, gravityScale float32) {
+	C.b2Body_SetGravityScale(*cast[C.b2BodyId](&bodyId), C.float(gravityScale))
+}
 
 // Get the current gravity scale
-B2_API float b2Body_GetGravityScale( b2BodyId bodyId );
+func b2Body_GetGravityScale(bodyId BodyId) float32 {
+	return float32(C.b2Body_GetGravityScale(*cast[C.b2BodyId](&bodyId)))
+}
 
 // @return true if this body is awake
-B2_API bool b2Body_IsAwake( b2BodyId bodyId );
+func b2Body_IsAwake(bodyId BodyId) bool {
+	return bool(C.b2Body_IsAwake(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Wake a body from sleep. This wakes the entire island the body is touching.
 // @warning Putting a body to sleep will put the entire island of bodies touching this body to sleep,
 // which can be expensive and possibly unintuitive.
-B2_API void b2Body_SetAwake( b2BodyId bodyId, bool awake );
+func b2Body_SetAwake(bodyId BodyId, awake bool) {
+	C.b2Body_SetAwake(*cast[C.b2BodyId](&bodyId), C.bool(awake))
+}
 
 // Wake bodies touching this body. Works for static bodies.
-B2_API void b2Body_WakeTouching( b2BodyId bodyId );
+func b2Body_WakeTouching(bodyId BodyId) {
+	C.b2Body_WakeTouching(*cast[C.b2BodyId](&bodyId))
+}
 
 // Enable or disable sleeping for this body. If sleeping is disabled the body will wake.
-B2_API void b2Body_EnableSleep( b2BodyId bodyId, bool enableSleep );
+func b2Body_EnableSleep(bodyId BodyId, enableSleep bool) {
+	C.b2Body_EnableSleep(*cast[C.b2BodyId](&bodyId), C.bool(enableSleep))
+}
 
 // Returns true if sleeping is enabled for this body
-B2_API bool b2Body_IsSleepEnabled( b2BodyId bodyId );
+func b2Body_IsSleepEnabled(bodyId BodyId) bool {
+	return bool(C.b2Body_IsSleepEnabled(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Set the sleep threshold, usually in meters per second
-B2_API void b2Body_SetSleepThreshold( b2BodyId bodyId, float sleepThreshold );
+func b2Body_SetSleepThreshold(bodyId BodyId, sleepThreshold float32) {
+	C.b2Body_SetSleepThreshold(*cast[C.b2BodyId](&bodyId), C.float(sleepThreshold))
+}
 
 // Get the sleep threshold, usually in meters per second.
-B2_API float b2Body_GetSleepThreshold( b2BodyId bodyId );
+func b2Body_GetSleepThreshold(bodyId BodyId) float32 {
+	return float32(C.b2Body_GetSleepThreshold(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Returns true if this body is enabled
-B2_API bool b2Body_IsEnabled( b2BodyId bodyId );
+func b2Body_IsEnabled(bodyId BodyId) bool {
+	return bool(C.b2Body_IsEnabled(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Disable a body by removing it completely from the simulation. This is expensive.
-B2_API void b2Body_Disable( b2BodyId bodyId );
+func b2Body_Disable(bodyId BodyId) {
+	C.b2Body_Disable(*cast[C.b2BodyId](&bodyId))
+}
 
 // Enable a body by adding it to the simulation. This is expensive.
-B2_API void b2Body_Enable( b2BodyId bodyId );
+func b2Body_Enable(bodyId BodyId) {
+	C.b2Body_Enable(*cast[C.b2BodyId](&bodyId))
+}
 
 // Set the motion locks on this body.
-B2_API void b2Body_SetMotionLocks( b2BodyId bodyId, b2MotionLocks locks );
+func b2Body_SetMotionLocks(bodyId BodyId, locks MotionLocks) {
+	C.b2Body_SetMotionLocks(*cast[C.b2BodyId](&bodyId), *cast[C.b2MotionLocks](&locks))
+}
 
 // Get the motion locks for this body.
-B2_API b2MotionLocks b2Body_GetMotionLocks( b2BodyId bodyId );
+func b2Body_GetMotionLocks(bodyId BodyId) MotionLocks {
+	r := C.b2Body_GetMotionLocks(*cast[C.b2BodyId](&bodyId))
+	return *cast[MotionLocks](&r)
+}
 
 // Set this body to be a bullet. A bullet does continuous collision detection
 // against dynamic bodies (but not other bullets).
-B2_API void b2Body_SetBullet( b2BodyId bodyId, bool flag );
+func b2Body_SetBullet(bodyId BodyId, flag bool) {
+	C.b2Body_SetBullet(*cast[C.b2BodyId](&bodyId), C.bool(flag))
+}
 
 // Is this body a bullet?
-B2_API bool b2Body_IsBullet( b2BodyId bodyId );
+func b2Body_IsBullet(bodyId BodyId) bool {
+	return bool(C.b2Body_IsBullet(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Enable/disable contact events on all shapes.
 // @see b2ShapeDef::enableContactEvents
 // @warning changing this at runtime may cause mismatched begin/end touch events
-B2_API void b2Body_EnableContactEvents( b2BodyId bodyId, bool flag );
+func b2Body_EnableContactEvents(bodyId BodyId, flag bool) {
+	C.b2Body_EnableContactEvents(*cast[C.b2BodyId](&bodyId), C.bool(flag))
+}
 
 // Enable/disable hit events on all shapes
 // @see b2ShapeDef::enableHitEvents
-B2_API void b2Body_EnableHitEvents( b2BodyId bodyId, bool flag );
+func b2Body_EnableHitEvents(bodyId BodyId, flag bool) {
+	C.b2Body_EnableHitEvents(*cast[C.b2BodyId](&bodyId), C.bool(flag))
+}
 
 // Get the world that owns this body
-B2_API b2WorldId b2Body_GetWorld( b2BodyId bodyId );
+func b2Body_GetWorld(bodyId BodyId) WorldId {
+	r := C.b2Body_GetWorld(*cast[C.b2BodyId](&bodyId))
+	return *cast[WorldId](&r)
+}
 
 // Get the number of shapes on this body
-B2_API int b2Body_GetShapeCount( b2BodyId bodyId );
+func b2Body_GetShapeCount(bodyId BodyId) int {
+	return int(C.b2Body_GetShapeCount(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Get the shape ids for all shapes on this body, up to the provided capacity.
 // @returns the number of shape ids stored in the user array
-B2_API int b2Body_GetShapes( b2BodyId bodyId, b2ShapeId* shapeArray, int capacity );
+func b2Body_GetShapes(bodyId BodyId, shapeArray *ShapeId, capacity int) int {
+	return int(C.b2Body_GetShapes(*cast[C.b2BodyId](&bodyId), cast[C.b2ShapeId](shapeArray), C.int(capacity)))
+}
 
 // Get the number of joints on this body
-B2_API int b2Body_GetJointCount( b2BodyId bodyId );
+func b2Body_GetJointCount(bodyId BodyId) int {
+	return int(C.b2Body_GetJointCount(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Get the joint ids for all joints on this body, up to the provided capacity
 // @returns the number of joint ids stored in the user array
-B2_API int b2Body_GetJoints( b2BodyId bodyId, b2JointId* jointArray, int capacity );
+func b2Body_GetJoints(bodyId BodyId, jointArray *JointId, capacity int) int {
+	return int(C.b2Body_GetJoints(*cast[C.b2BodyId](&bodyId), cast[C.b2JointId](jointArray), C.int(capacity)))
+}
 
 // Get the maximum capacity required for retrieving all the touching contacts on a body
-B2_API int b2Body_GetContactCapacity( b2BodyId bodyId );
+func b2Body_GetContactCapacity(bodyId BodyId) int {
+	return int(C.b2Body_GetContactCapacity(*cast[C.b2BodyId](&bodyId)))
+}
 
 // Get the touching contact data for a body.
 // @note Box2D uses speculative collision so some contact points may be separated.
 // @returns the number of elements filled in the provided array
 // @warning do not ignore the return value, it specifies the valid number of elements
-B2_API int b2Body_GetContactData( b2BodyId bodyId, b2ContactData* contactData, int capacity );
+func b2Body_GetContactData(bodyId BodyId, contactData *ContactData, capacity int) int {
+	return int(C.b2Body_GetContactData(*cast[C.b2BodyId](&bodyId), cast[C.b2ContactData](contactData), C.int(capacity)))
+}
 
 // Get the current world AABB that contains all the attached shapes. Note that this may not encompass the body origin.
 // If there are no shapes attached then the returned AABB is empty and centered on the body origin.
-B2_API b2AABB b2Body_ComputeAABB( b2BodyId bodyId );
-*/
+func b2Body_ComputeAABB(bodyId BodyId) AABB {
+	r := C.b2Body_ComputeAABB(*cast[C.b2BodyId](&bodyId))
+	return *cast[AABB](&r)
+}
+
 //
 // @defgroup shape Shape
 // Functions to create, destroy, and access.
@@ -581,24 +712,36 @@ func DestroyShape(shapeId ShapeId, updateBodyMass bool) {
 	C.b2DestroyShape(*cast[C.b2ShapeId](&shapeId), C.bool(updateBodyMass))
 }
 
-/*
 // Shape identifier validation. Provides validation for up to 64K allocations.
-B2_API bool b2Shape_IsValid( b2ShapeId id );
+func Shape_IsValid(id ShapeId) bool {
+	return bool(C.b2Shape_IsValid(*cast[C.b2ShapeId](&id)))
+}
 
 // Get the type of a shape
-B2_API b2ShapeType b2Shape_GetType( b2ShapeId shapeId );
+func Shape_GetType(shapeId ShapeId) ShapeType {
+	return ShapeType(C.b2Shape_GetType(*cast[C.b2ShapeId](&shapeId)))
+}
 
 // Get the id of the body that a shape is attached to
-B2_API b2BodyId b2Shape_GetBody( b2ShapeId shapeId );
+func Shape_GetBody(shapeId ShapeId) BodyId {
+	r := C.b2Shape_GetBody(*cast[C.b2ShapeId](&shapeId))
+	return *cast[BodyId](&r)
+}
 
 // Get the world that owns this shape
-B2_API b2WorldId b2Shape_GetWorld( b2ShapeId shapeId );
+func Shape_GetWorld(shapeId ShapeId) WorldId {
+	r := C.b2Shape_GetWorld(*cast[C.b2ShapeId](&shapeId))
+	return *cast[WorldId](&r)
+}
 
 // Returns true if the shape is a sensor. It is not possible to change a shape
 // from sensor to solid dynamically because this breaks the contract for
 // sensor events.
-B2_API bool b2Shape_IsSensor( b2ShapeId shapeId );
+func Shape_IsSensor(shapeId ShapeId) bool {
+	return bool(C.b2Shape_IsSensor(*cast[C.b2ShapeId](&shapeId)))
+}
 
+/*
 // Set the user data for a shape
 B2_API void b2Shape_SetUserData( b2ShapeId shapeId, void* userData );
 
@@ -609,22 +752,22 @@ B2_API void* b2Shape_GetUserData( b2ShapeId shapeId );
 // Set the mass density of a shape, usually in kg/m^2.
 // This will optionally update the mass properties on the parent body.
 // @see b2ShapeDef::density, b2Body_ApplyMassFromShapes
-B2_API void b2Shape_SetDensity( b2ShapeId shapeId, float density, bool updateBodyMass );
+B2_API void b2Shape_SetDensity( b2ShapeId shapeId, float32 density, bool updateBodyMass );
 
 // Get the density of a shape, usually in kg/m^2
-B2_API float b2Shape_GetDensity( b2ShapeId shapeId );
+B2_API float32 b2Shape_GetDensity( b2ShapeId shapeId );
 
 // Set the friction on a shape
-B2_API void b2Shape_SetFriction( b2ShapeId shapeId, float friction );
+B2_API void b2Shape_SetFriction( b2ShapeId shapeId, float32 friction );
 
 // Get the friction of a shape
-B2_API float b2Shape_GetFriction( b2ShapeId shapeId );
+B2_API float32 b2Shape_GetFriction( b2ShapeId shapeId );
 
 // Set the shape restitution (bounciness)
-B2_API void b2Shape_SetRestitution( b2ShapeId shapeId, float restitution );
+B2_API void b2Shape_SetRestitution( b2ShapeId shapeId, float32 restitution );
 
 // Get the shape restitution
-B2_API float b2Shape_GetRestitution( b2ShapeId shapeId );
+B2_API float32 b2Shape_GetRestitution( b2ShapeId shapeId );
 
 // Set the user material identifier
 B2_API void b2Shape_SetUserMaterial( b2ShapeId shapeId, uint64_t material );
@@ -678,7 +821,7 @@ B2_API void b2Shape_EnableHitEvents( b2ShapeId shapeId, bool flag );
 B2_API bool b2Shape_AreHitEventsEnabled( b2ShapeId shapeId );
 
 // Test a point for overlap with a shape
-B2_API bool b2Shape_TestPoint( b2ShapeId shapeId, b2Vec2 point );
+B2_API bool b2Shape_TestPoint( b2ShapeId shapeId, Vec2 point );
 
 // Ray cast a shape directly
 B2_API b2CastOutput b2Shape_RayCast( b2ShapeId shapeId, const b2RayCastInput* input );
@@ -753,7 +896,7 @@ B2_API b2MassData b2Shape_ComputeMassData( b2ShapeId shapeId );
 
 // Get the closest point on a shape to a target point. Target and result are in world space.
 // todo need sample
-B2_API b2Vec2 b2Shape_GetClosestPoint( b2ShapeId shapeId, b2Vec2 target );
+B2_API Vec2 b2Shape_GetClosestPoint( b2ShapeId shapeId, Vec2 target );
 
 // Apply a wind force to the body for this shape using the density of air. This considers
 // the projected area of the shape in the wind direction. This also considers
@@ -763,7 +906,7 @@ B2_API b2Vec2 b2Shape_GetClosestPoint( b2ShapeId shapeId, b2Vec2 target );
 // @param drag the drag coefficient, the force that opposes the relative velocity
 // @param lift the lift coefficient, the force that is perpendicular to the relative velocity
 // @param wake should this wake the body
-B2_API void b2Shape_ApplyWind( b2ShapeId shapeId, b2Vec2 wind, float drag, float lift, bool wake );
+B2_API void b2Shape_ApplyWind( b2ShapeId shapeId, Vec2 wind, float32 drag, float32 lift, bool wake );
 
 // Chain Shape
 
@@ -821,16 +964,16 @@ B2_API b2BodyId b2Joint_GetBodyB( b2JointId jointId );
 B2_API b2WorldId b2Joint_GetWorld( b2JointId jointId );
 
 // Set the local frame on bodyA
-B2_API void b2Joint_SetLocalFrameA( b2JointId jointId, b2Transform localFrame );
+B2_API void b2Joint_SetLocalFrameA( b2JointId jointId, Transform localFrame );
 
 // Get the local frame on bodyA
-B2_API b2Transform b2Joint_GetLocalFrameA( b2JointId jointId );
+B2_API Transform b2Joint_GetLocalFrameA( b2JointId jointId );
 
 // Set the local frame on bodyB
-B2_API void b2Joint_SetLocalFrameB( b2JointId jointId, b2Transform localFrame );
+B2_API void b2Joint_SetLocalFrameB( b2JointId jointId, Transform localFrame );
 
 // Get the local frame on bodyB
-B2_API b2Transform b2Joint_GetLocalFrameB( b2JointId jointId );
+B2_API Transform b2Joint_GetLocalFrameB( b2JointId jointId );
 
 // Toggle collision between connected bodies
 B2_API void b2Joint_SetCollideConnected( b2JointId jointId, bool shouldCollide );
@@ -848,37 +991,37 @@ B2_API void* b2Joint_GetUserData( b2JointId jointId );
 B2_API void b2Joint_WakeBodies( b2JointId jointId );
 
 // Get the current constraint force for this joint. Usually in Newtons.
-B2_API b2Vec2 b2Joint_GetConstraintForce( b2JointId jointId );
+B2_API Vec2 b2Joint_GetConstraintForce( b2JointId jointId );
 
 // Get the current constraint torque for this joint. Usually in Newton * meters.
-B2_API float b2Joint_GetConstraintTorque( b2JointId jointId );
+B2_API float32 b2Joint_GetConstraintTorque( b2JointId jointId );
 
 // Get the current linear separation error for this joint. Does not consider admissible movement. Usually in meters.
-B2_API float b2Joint_GetLinearSeparation( b2JointId jointId );
+B2_API float32 b2Joint_GetLinearSeparation( b2JointId jointId );
 
 // Get the current angular separation error for this joint. Does not consider admissible movement. Usually in meters.
-B2_API float b2Joint_GetAngularSeparation( b2JointId jointId );
+B2_API float32 b2Joint_GetAngularSeparation( b2JointId jointId );
 
 // Set the joint constraint tuning. Advanced feature.
 // @param jointId the joint
 // @param hertz the stiffness in Hertz (cycles per second)
 // @param dampingRatio the non-dimensional damping ratio (one for critical damping)
-B2_API void b2Joint_SetConstraintTuning( b2JointId jointId, float hertz, float dampingRatio );
+B2_API void b2Joint_SetConstraintTuning( b2JointId jointId, float32 hertz, float32 dampingRatio );
 
 // Get the joint constraint tuning. Advanced feature.
-B2_API void b2Joint_GetConstraintTuning( b2JointId jointId, float* hertz, float* dampingRatio );
+B2_API void b2Joint_GetConstraintTuning( b2JointId jointId, float32* hertz, float32* dampingRatio );
 
 // Set the force threshold for joint events (Newtons)
-B2_API void b2Joint_SetForceThreshold( b2JointId jointId, float threshold );
+B2_API void b2Joint_SetForceThreshold( b2JointId jointId, float32 threshold );
 
 // Get the force threshold for joint events (Newtons)
-B2_API float b2Joint_GetForceThreshold( b2JointId jointId );
+B2_API float32 b2Joint_GetForceThreshold( b2JointId jointId );
 
 // Set the torque threshold for joint events (N-m)
-B2_API void b2Joint_SetTorqueThreshold( b2JointId jointId, float threshold );
+B2_API void b2Joint_SetTorqueThreshold( b2JointId jointId, float32 threshold );
 
 // Get the torque threshold for joint events (N-m)
-B2_API float b2Joint_GetTorqueThreshold( b2JointId jointId );
+B2_API float32 b2Joint_GetTorqueThreshold( b2JointId jointId );
 
 //
 // @defgroup distance_joint Distance Joint
@@ -892,10 +1035,10 @@ B2_API b2JointId b2CreateDistanceJoint( b2WorldId worldId, const b2DistanceJoint
 // Set the rest length of a distance joint
 // @param jointId The id for a distance joint
 // @param length The new distance joint length
-B2_API void b2DistanceJoint_SetLength( b2JointId jointId, float length );
+B2_API void b2DistanceJoint_SetLength( b2JointId jointId, float32 length );
 
 // Get the rest length of a distance joint
-B2_API float b2DistanceJoint_GetLength( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetLength( b2JointId jointId );
 
 // Enable/disable the distance joint spring. When disabled the distance joint is rigid.
 B2_API void b2DistanceJoint_EnableSpring( b2JointId jointId, bool enableSpring );
@@ -904,22 +1047,22 @@ B2_API void b2DistanceJoint_EnableSpring( b2JointId jointId, bool enableSpring )
 B2_API bool b2DistanceJoint_IsSpringEnabled( b2JointId jointId );
 
 // Set the force range for the spring.
-B2_API void b2DistanceJoint_SetSpringForceRange( b2JointId jointId, float lowerForce, float upperForce );
+B2_API void b2DistanceJoint_SetSpringForceRange( b2JointId jointId, float32 lowerForce, float32 upperForce );
 
 // Get the force range for the spring.
-B2_API void b2DistanceJoint_GetSpringForceRange( b2JointId jointId, float* lowerForce, float* upperForce );
+B2_API void b2DistanceJoint_GetSpringForceRange( b2JointId jointId, float32* lowerForce, float32* upperForce );
 
 // Set the spring stiffness in Hertz
-B2_API void b2DistanceJoint_SetSpringHertz( b2JointId jointId, float hertz );
+B2_API void b2DistanceJoint_SetSpringHertz( b2JointId jointId, float32 hertz );
 
 // Set the spring damping ratio, non-dimensional
-B2_API void b2DistanceJoint_SetSpringDampingRatio( b2JointId jointId, float dampingRatio );
+B2_API void b2DistanceJoint_SetSpringDampingRatio( b2JointId jointId, float32 dampingRatio );
 
 // Get the spring Hertz
-B2_API float b2DistanceJoint_GetSpringHertz( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetSpringHertz( b2JointId jointId );
 
 // Get the spring damping ratio
-B2_API float b2DistanceJoint_GetSpringDampingRatio( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetSpringDampingRatio( b2JointId jointId );
 
 // Enable joint limit. The limit only works if the joint spring is enabled. Otherwise the joint is rigid
 // and the limit has no effect.
@@ -929,16 +1072,16 @@ B2_API void b2DistanceJoint_EnableLimit( b2JointId jointId, bool enableLimit );
 B2_API bool b2DistanceJoint_IsLimitEnabled( b2JointId jointId );
 
 // Set the minimum and maximum length parameters of a distance joint
-B2_API void b2DistanceJoint_SetLengthRange( b2JointId jointId, float minLength, float maxLength );
+B2_API void b2DistanceJoint_SetLengthRange( b2JointId jointId, float32 minLength, float32 maxLength );
 
 // Get the distance joint minimum length
-B2_API float b2DistanceJoint_GetMinLength( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetMinLength( b2JointId jointId );
 
 // Get the distance joint maximum length
-B2_API float b2DistanceJoint_GetMaxLength( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetMaxLength( b2JointId jointId );
 
 // Get the current length of a distance joint
-B2_API float b2DistanceJoint_GetCurrentLength( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetCurrentLength( b2JointId jointId );
 
 // Enable/disable the distance joint motor
 B2_API void b2DistanceJoint_EnableMotor( b2JointId jointId, bool enableMotor );
@@ -947,19 +1090,19 @@ B2_API void b2DistanceJoint_EnableMotor( b2JointId jointId, bool enableMotor );
 B2_API bool b2DistanceJoint_IsMotorEnabled( b2JointId jointId );
 
 // Set the distance joint motor speed, usually in meters per second
-B2_API void b2DistanceJoint_SetMotorSpeed( b2JointId jointId, float motorSpeed );
+B2_API void b2DistanceJoint_SetMotorSpeed( b2JointId jointId, float32 motorSpeed );
 
 // Get the distance joint motor speed, usually in meters per second
-B2_API float b2DistanceJoint_GetMotorSpeed( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetMotorSpeed( b2JointId jointId );
 
 // Set the distance joint maximum motor force, usually in newtons
-B2_API void b2DistanceJoint_SetMaxMotorForce( b2JointId jointId, float force );
+B2_API void b2DistanceJoint_SetMaxMotorForce( b2JointId jointId, float32 force );
 
 // Get the distance joint maximum motor force, usually in newtons
-B2_API float b2DistanceJoint_GetMaxMotorForce( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetMaxMotorForce( b2JointId jointId );
 
 // Get the distance joint current motor force, usually in newtons
-B2_API float b2DistanceJoint_GetMotorForce( b2JointId jointId );
+B2_API float32 b2DistanceJoint_GetMotorForce( b2JointId jointId );
 
 //
 // @defgroup motor_joint Motor Joint
@@ -977,64 +1120,64 @@ B2_API float b2DistanceJoint_GetMotorForce( b2JointId jointId );
 B2_API b2JointId b2CreateMotorJoint( b2WorldId worldId, const b2MotorJointDef* def );
 
 // Set the desired relative linear velocity in meters per second
-B2_API void b2MotorJoint_SetLinearVelocity( b2JointId jointId, b2Vec2 velocity );
+B2_API void b2MotorJoint_SetLinearVelocity( b2JointId jointId, Vec2 velocity );
 
 // Get the desired relative linear velocity in meters per second
-B2_API b2Vec2 b2MotorJoint_GetLinearVelocity( b2JointId jointId );
+B2_API Vec2 b2MotorJoint_GetLinearVelocity( b2JointId jointId );
 
 // Set the desired relative angular velocity in radians per second
-B2_API void b2MotorJoint_SetAngularVelocity( b2JointId jointId, float velocity );
+B2_API void b2MotorJoint_SetAngularVelocity( b2JointId jointId, float32 velocity );
 
 // Get the desired relative angular velocity in radians per second
-B2_API float b2MotorJoint_GetAngularVelocity( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetAngularVelocity( b2JointId jointId );
 
 // Set the motor joint maximum force, usually in newtons
-B2_API void b2MotorJoint_SetMaxVelocityForce( b2JointId jointId, float maxForce );
+B2_API void b2MotorJoint_SetMaxVelocityForce( b2JointId jointId, float32 maxForce );
 
 // Get the motor joint maximum force, usually in newtons
-B2_API float b2MotorJoint_GetMaxVelocityForce( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetMaxVelocityForce( b2JointId jointId );
 
 // Set the motor joint maximum torque, usually in newton-meters
-B2_API void b2MotorJoint_SetMaxVelocityTorque( b2JointId jointId, float maxTorque );
+B2_API void b2MotorJoint_SetMaxVelocityTorque( b2JointId jointId, float32 maxTorque );
 
 // Get the motor joint maximum torque, usually in newton-meters
-B2_API float b2MotorJoint_GetMaxVelocityTorque( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetMaxVelocityTorque( b2JointId jointId );
 
 // Set the spring linear hertz stiffness
-B2_API void b2MotorJoint_SetLinearHertz( b2JointId jointId, float hertz );
+B2_API void b2MotorJoint_SetLinearHertz( b2JointId jointId, float32 hertz );
 
 // Get the spring linear hertz stiffness
-B2_API float b2MotorJoint_GetLinearHertz( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetLinearHertz( b2JointId jointId );
 
 // Set the spring linear damping ratio. Use 1.0 for critical damping.
-B2_API void b2MotorJoint_SetLinearDampingRatio( b2JointId jointId, float damping );
+B2_API void b2MotorJoint_SetLinearDampingRatio( b2JointId jointId, float32 damping );
 
 // Get the spring linear damping ratio.
-B2_API float b2MotorJoint_GetLinearDampingRatio( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetLinearDampingRatio( b2JointId jointId );
 
 // Set the spring angular hertz stiffness
-B2_API void b2MotorJoint_SetAngularHertz( b2JointId jointId, float hertz );
+B2_API void b2MotorJoint_SetAngularHertz( b2JointId jointId, float32 hertz );
 
 // Get the spring angular hertz stiffness
-B2_API float b2MotorJoint_GetAngularHertz( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetAngularHertz( b2JointId jointId );
 
 // Set the spring angular damping ratio. Use 1.0 for critical damping.
-B2_API void b2MotorJoint_SetAngularDampingRatio( b2JointId jointId, float damping );
+B2_API void b2MotorJoint_SetAngularDampingRatio( b2JointId jointId, float32 damping );
 
 // Get the spring angular damping ratio.
-B2_API float b2MotorJoint_GetAngularDampingRatio( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetAngularDampingRatio( b2JointId jointId );
 
 // Set the maximum spring force in newtons.
-B2_API void b2MotorJoint_SetMaxSpringForce( b2JointId jointId, float maxForce );
+B2_API void b2MotorJoint_SetMaxSpringForce( b2JointId jointId, float32 maxForce );
 
 // Get the maximum spring force in newtons.
-B2_API float b2MotorJoint_GetMaxSpringForce( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetMaxSpringForce( b2JointId jointId );
 
 // Set the maximum spring torque in newtons * meters
-B2_API void b2MotorJoint_SetMaxSpringTorque( b2JointId jointId, float maxTorque );
+B2_API void b2MotorJoint_SetMaxSpringTorque( b2JointId jointId, float32 maxTorque );
 
 // Get the maximum spring torque in newtons * meters
-B2_API float b2MotorJoint_GetMaxSpringTorque( b2JointId jointId );
+B2_API float32 b2MotorJoint_GetMaxSpringTorque( b2JointId jointId );
 
 //
 // @defgroup filter_joint Filter Joint
@@ -1069,22 +1212,22 @@ B2_API bool b2PrismaticJoint_IsSpringEnabled( b2JointId jointId );
 // Set the prismatic joint stiffness in Hertz.
 // This should usually be less than a quarter of the simulation rate. For example, if the simulation
 // runs at 60Hz then the joint stiffness should be 15Hz or less.
-B2_API void b2PrismaticJoint_SetSpringHertz( b2JointId jointId, float hertz );
+B2_API void b2PrismaticJoint_SetSpringHertz( b2JointId jointId, float32 hertz );
 
 // Get the prismatic joint stiffness in Hertz
-B2_API float b2PrismaticJoint_GetSpringHertz( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetSpringHertz( b2JointId jointId );
 
 // Set the prismatic joint damping ratio (non-dimensional)
-B2_API void b2PrismaticJoint_SetSpringDampingRatio( b2JointId jointId, float dampingRatio );
+B2_API void b2PrismaticJoint_SetSpringDampingRatio( b2JointId jointId, float32 dampingRatio );
 
 // Get the prismatic spring damping ratio (non-dimensional)
-B2_API float b2PrismaticJoint_GetSpringDampingRatio( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetSpringDampingRatio( b2JointId jointId );
 
 // Set the prismatic joint spring target angle, usually in meters
-B2_API void b2PrismaticJoint_SetTargetTranslation( b2JointId jointId, float translation );
+B2_API void b2PrismaticJoint_SetTargetTranslation( b2JointId jointId, float32 translation );
 
 // Get the prismatic joint spring target translation, usually in meters
-B2_API float b2PrismaticJoint_GetTargetTranslation( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetTargetTranslation( b2JointId jointId );
 
 // Enable/disable a prismatic joint limit
 B2_API void b2PrismaticJoint_EnableLimit( b2JointId jointId, bool enableLimit );
@@ -1093,13 +1236,13 @@ B2_API void b2PrismaticJoint_EnableLimit( b2JointId jointId, bool enableLimit );
 B2_API bool b2PrismaticJoint_IsLimitEnabled( b2JointId jointId );
 
 // Get the prismatic joint lower limit
-B2_API float b2PrismaticJoint_GetLowerLimit( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetLowerLimit( b2JointId jointId );
 
 // Get the prismatic joint upper limit
-B2_API float b2PrismaticJoint_GetUpperLimit( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetUpperLimit( b2JointId jointId );
 
 // Set the prismatic joint limits
-B2_API void b2PrismaticJoint_SetLimits( b2JointId jointId, float lower, float upper );
+B2_API void b2PrismaticJoint_SetLimits( b2JointId jointId, float32 lower, float32 upper );
 
 // Enable/disable a prismatic joint motor
 B2_API void b2PrismaticJoint_EnableMotor( b2JointId jointId, bool enableMotor );
@@ -1108,25 +1251,25 @@ B2_API void b2PrismaticJoint_EnableMotor( b2JointId jointId, bool enableMotor );
 B2_API bool b2PrismaticJoint_IsMotorEnabled( b2JointId jointId );
 
 // Set the prismatic joint motor speed, usually in meters per second
-B2_API void b2PrismaticJoint_SetMotorSpeed( b2JointId jointId, float motorSpeed );
+B2_API void b2PrismaticJoint_SetMotorSpeed( b2JointId jointId, float32 motorSpeed );
 
 // Get the prismatic joint motor speed, usually in meters per second
-B2_API float b2PrismaticJoint_GetMotorSpeed( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetMotorSpeed( b2JointId jointId );
 
 // Set the prismatic joint maximum motor force, usually in newtons
-B2_API void b2PrismaticJoint_SetMaxMotorForce( b2JointId jointId, float force );
+B2_API void b2PrismaticJoint_SetMaxMotorForce( b2JointId jointId, float32 force );
 
 // Get the prismatic joint maximum motor force, usually in newtons
-B2_API float b2PrismaticJoint_GetMaxMotorForce( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetMaxMotorForce( b2JointId jointId );
 
 // Get the prismatic joint current motor force, usually in newtons
-B2_API float b2PrismaticJoint_GetMotorForce( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetMotorForce( b2JointId jointId );
 
 // Get the current joint translation, usually in meters.
-B2_API float b2PrismaticJoint_GetTranslation( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetTranslation( b2JointId jointId );
 
 // Get the current joint translation speed, usually in meters per second.
-B2_API float b2PrismaticJoint_GetSpeed( b2JointId jointId );
+B2_API float32 b2PrismaticJoint_GetSpeed( b2JointId jointId );
 
 //
 // @defgroup revolute_joint Revolute Joint
@@ -1147,26 +1290,26 @@ B2_API void b2RevoluteJoint_EnableSpring( b2JointId jointId, bool enableSpring )
 B2_API bool b2RevoluteJoint_IsSpringEnabled( b2JointId jointId );
 
 // Set the revolute joint spring stiffness in Hertz
-B2_API void b2RevoluteJoint_SetSpringHertz( b2JointId jointId, float hertz );
+B2_API void b2RevoluteJoint_SetSpringHertz( b2JointId jointId, float32 hertz );
 
 // Get the revolute joint spring stiffness in Hertz
-B2_API float b2RevoluteJoint_GetSpringHertz( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetSpringHertz( b2JointId jointId );
 
 // Set the revolute joint spring damping ratio, non-dimensional
-B2_API void b2RevoluteJoint_SetSpringDampingRatio( b2JointId jointId, float dampingRatio );
+B2_API void b2RevoluteJoint_SetSpringDampingRatio( b2JointId jointId, float32 dampingRatio );
 
 // Get the revolute joint spring damping ratio, non-dimensional
-B2_API float b2RevoluteJoint_GetSpringDampingRatio( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetSpringDampingRatio( b2JointId jointId );
 
 // Set the revolute joint spring target angle, radians
-B2_API void b2RevoluteJoint_SetTargetAngle( b2JointId jointId, float angle );
+B2_API void b2RevoluteJoint_SetTargetAngle( b2JointId jointId, float32 angle );
 
 // Get the revolute joint spring target angle, radians
-B2_API float b2RevoluteJoint_GetTargetAngle( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetTargetAngle( b2JointId jointId );
 
 // Get the revolute joint current angle in radians relative to the reference angle
 // @see b2RevoluteJointDef::referenceAngle
-B2_API float b2RevoluteJoint_GetAngle( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetAngle( b2JointId jointId );
 
 // Enable/disable the revolute joint limit
 B2_API void b2RevoluteJoint_EnableLimit( b2JointId jointId, bool enableLimit );
@@ -1175,14 +1318,14 @@ B2_API void b2RevoluteJoint_EnableLimit( b2JointId jointId, bool enableLimit );
 B2_API bool b2RevoluteJoint_IsLimitEnabled( b2JointId jointId );
 
 // Get the revolute joint lower limit in radians
-B2_API float b2RevoluteJoint_GetLowerLimit( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetLowerLimit( b2JointId jointId );
 
 // Get the revolute joint upper limit in radians
-B2_API float b2RevoluteJoint_GetUpperLimit( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetUpperLimit( b2JointId jointId );
 
 // Set the revolute joint limits in radians. It is expected that lower <= upper
 // and that -0.99 * B2_PI <= lower && upper <= -0.99 * B2_PI.
-B2_API void b2RevoluteJoint_SetLimits( b2JointId jointId, float lower, float upper );
+B2_API void b2RevoluteJoint_SetLimits( b2JointId jointId, float32 lower, float32 upper );
 
 // Enable/disable a revolute joint motor
 B2_API void b2RevoluteJoint_EnableMotor( b2JointId jointId, bool enableMotor );
@@ -1191,19 +1334,19 @@ B2_API void b2RevoluteJoint_EnableMotor( b2JointId jointId, bool enableMotor );
 B2_API bool b2RevoluteJoint_IsMotorEnabled( b2JointId jointId );
 
 // Set the revolute joint motor speed in radians per second
-B2_API void b2RevoluteJoint_SetMotorSpeed( b2JointId jointId, float motorSpeed );
+B2_API void b2RevoluteJoint_SetMotorSpeed( b2JointId jointId, float32 motorSpeed );
 
 // Get the revolute joint motor speed in radians per second
-B2_API float b2RevoluteJoint_GetMotorSpeed( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetMotorSpeed( b2JointId jointId );
 
 // Get the revolute joint current motor torque, usually in newton-meters
-B2_API float b2RevoluteJoint_GetMotorTorque( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetMotorTorque( b2JointId jointId );
 
 // Set the revolute joint maximum motor torque, usually in newton-meters
-B2_API void b2RevoluteJoint_SetMaxMotorTorque( b2JointId jointId, float torque );
+B2_API void b2RevoluteJoint_SetMaxMotorTorque( b2JointId jointId, float32 torque );
 
 // Get the revolute joint maximum motor torque, usually in newton-meters
-B2_API float b2RevoluteJoint_GetMaxMotorTorque( b2JointId jointId );
+B2_API float32 b2RevoluteJoint_GetMaxMotorTorque( b2JointId jointId );
 
 //
 // @defgroup weld_joint Weld Joint
@@ -1220,28 +1363,28 @@ B2_API float b2RevoluteJoint_GetMaxMotorTorque( b2JointId jointId );
 B2_API b2JointId b2CreateWeldJoint( b2WorldId worldId, const b2WeldJointDef* def );
 
 // Set the weld joint linear stiffness in Hertz. 0 is rigid.
-B2_API void b2WeldJoint_SetLinearHertz( b2JointId jointId, float hertz );
+B2_API void b2WeldJoint_SetLinearHertz( b2JointId jointId, float32 hertz );
 
 // Get the weld joint linear stiffness in Hertz
-B2_API float b2WeldJoint_GetLinearHertz( b2JointId jointId );
+B2_API float32 b2WeldJoint_GetLinearHertz( b2JointId jointId );
 
 // Set the weld joint linear damping ratio (non-dimensional)
-B2_API void b2WeldJoint_SetLinearDampingRatio( b2JointId jointId, float dampingRatio );
+B2_API void b2WeldJoint_SetLinearDampingRatio( b2JointId jointId, float32 dampingRatio );
 
 // Get the weld joint linear damping ratio (non-dimensional)
-B2_API float b2WeldJoint_GetLinearDampingRatio( b2JointId jointId );
+B2_API float32 b2WeldJoint_GetLinearDampingRatio( b2JointId jointId );
 
 // Set the weld joint angular stiffness in Hertz. 0 is rigid.
-B2_API void b2WeldJoint_SetAngularHertz( b2JointId jointId, float hertz );
+B2_API void b2WeldJoint_SetAngularHertz( b2JointId jointId, float32 hertz );
 
 // Get the weld joint angular stiffness in Hertz
-B2_API float b2WeldJoint_GetAngularHertz( b2JointId jointId );
+B2_API float32 b2WeldJoint_GetAngularHertz( b2JointId jointId );
 
 // Set weld joint angular damping ratio, non-dimensional
-B2_API void b2WeldJoint_SetAngularDampingRatio( b2JointId jointId, float dampingRatio );
+B2_API void b2WeldJoint_SetAngularDampingRatio( b2JointId jointId, float32 dampingRatio );
 
 // Get the weld joint angular damping ratio, non-dimensional
-B2_API float b2WeldJoint_GetAngularDampingRatio( b2JointId jointId );
+B2_API float32 b2WeldJoint_GetAngularDampingRatio( b2JointId jointId );
 
 //
 // @defgroup wheel_joint Wheel Joint
@@ -1262,16 +1405,16 @@ B2_API void b2WheelJoint_EnableSpring( b2JointId jointId, bool enableSpring );
 B2_API bool b2WheelJoint_IsSpringEnabled( b2JointId jointId );
 
 // Set the wheel joint stiffness in Hertz
-B2_API void b2WheelJoint_SetSpringHertz( b2JointId jointId, float hertz );
+B2_API void b2WheelJoint_SetSpringHertz( b2JointId jointId, float32 hertz );
 
 // Get the wheel joint stiffness in Hertz
-B2_API float b2WheelJoint_GetSpringHertz( b2JointId jointId );
+B2_API float32 b2WheelJoint_GetSpringHertz( b2JointId jointId );
 
 // Set the wheel joint damping ratio, non-dimensional
-B2_API void b2WheelJoint_SetSpringDampingRatio( b2JointId jointId, float dampingRatio );
+B2_API void b2WheelJoint_SetSpringDampingRatio( b2JointId jointId, float32 dampingRatio );
 
 // Get the wheel joint damping ratio, non-dimensional
-B2_API float b2WheelJoint_GetSpringDampingRatio( b2JointId jointId );
+B2_API float32 b2WheelJoint_GetSpringDampingRatio( b2JointId jointId );
 
 // Enable/disable the wheel joint limit
 B2_API void b2WheelJoint_EnableLimit( b2JointId jointId, bool enableLimit );
@@ -1280,13 +1423,13 @@ B2_API void b2WheelJoint_EnableLimit( b2JointId jointId, bool enableLimit );
 B2_API bool b2WheelJoint_IsLimitEnabled( b2JointId jointId );
 
 // Get the wheel joint lower limit
-B2_API float b2WheelJoint_GetLowerLimit( b2JointId jointId );
+B2_API float32 b2WheelJoint_GetLowerLimit( b2JointId jointId );
 
 // Get the wheel joint upper limit
-B2_API float b2WheelJoint_GetUpperLimit( b2JointId jointId );
+B2_API float32 b2WheelJoint_GetUpperLimit( b2JointId jointId );
 
 // Set the wheel joint limits
-B2_API void b2WheelJoint_SetLimits( b2JointId jointId, float lower, float upper );
+B2_API void b2WheelJoint_SetLimits( b2JointId jointId, float32 lower, float32 upper );
 
 // Enable/disable the wheel joint motor
 B2_API void b2WheelJoint_EnableMotor( b2JointId jointId, bool enableMotor );
@@ -1295,29 +1438,32 @@ B2_API void b2WheelJoint_EnableMotor( b2JointId jointId, bool enableMotor );
 B2_API bool b2WheelJoint_IsMotorEnabled( b2JointId jointId );
 
 // Set the wheel joint motor speed in radians per second
-B2_API void b2WheelJoint_SetMotorSpeed( b2JointId jointId, float motorSpeed );
+B2_API void b2WheelJoint_SetMotorSpeed( b2JointId jointId, float32 motorSpeed );
 
 // Get the wheel joint motor speed in radians per second
-B2_API float b2WheelJoint_GetMotorSpeed( b2JointId jointId );
+B2_API float32 b2WheelJoint_GetMotorSpeed( b2JointId jointId );
 
 // Set the wheel joint maximum motor torque, usually in newton-meters
-B2_API void b2WheelJoint_SetMaxMotorTorque( b2JointId jointId, float torque );
+B2_API void b2WheelJoint_SetMaxMotorTorque( b2JointId jointId, float32 torque );
 
 // Get the wheel joint maximum motor torque, usually in newton-meters
-B2_API float b2WheelJoint_GetMaxMotorTorque( b2JointId jointId );
+B2_API float32 b2WheelJoint_GetMaxMotorTorque( b2JointId jointId );
 
 // Get the wheel joint current motor torque, usually in newton-meters
-B2_API float b2WheelJoint_GetMotorTorque( b2JointId jointId );
-
+B2_API float32 b2WheelJoint_GetMotorTorque( b2JointId jointId );
+*/
 //
 // @defgroup contact Contact
 // Access to contacts
 //
 
 // Contact identifier validation. Provides validation for up to 2^32 allocations.
-B2_API bool b2Contact_IsValid( b2ContactId id );
+func Contact_IsValid(id ContactId) bool {
+	return bool(C.b2Contact_IsValid(*cast[C.b2ContactId](&id)))
+}
 
 // Get the data for a contact. The manifold may have no points if the contact is not touching.
-B2_API b2ContactData b2Contact_GetData( b2ContactId contactId );
-
-*/
+func Contact_GetData(contactId ContactId) ContactData {
+	r := C.b2Contact_GetData(*cast[C.b2ContactId](&contactId))
+	return *cast[ContactData](&r)
+}

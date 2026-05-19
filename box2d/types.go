@@ -65,8 +65,8 @@ type RayResult struct {
 	Point      Vec2
 	Normal     Vec2
 	Fraction   float32
-	NodeVisits int
-	LeafVisits int
+	NodeVisits int32
+	LeafVisits int32
 	Hit        bool
 }
 
@@ -75,19 +75,19 @@ type RayResult struct {
 // @ingroup world
 type Capacity struct {
 	// Number of expected static shapes.
-	StaticShapeCount int
+	StaticShapeCount int32
 
 	// Number of expected dynamic and kinematic shapes.
-	DynamicShapeCount int
+	DynamicShapeCount int32
 
 	// Number of expected static bodies.
-	StaticBodyCount int
+	StaticBodyCount int32
 
 	// Number of expected dynamic and kinematic bodies.
-	DynamicBodyCount int
+	DynamicBodyCount int32
 
 	// Number of expected contacts.
-	ContactCount int
+	ContactCount int32
 }
 
 // World definition used to create a simulation world.
@@ -141,7 +141,7 @@ type WorldDef struct {
 	// Using a value above 1 will turn on multithreading. If task callbacks are provided
 	// then Box2D will use the user provided task system. Otherwise Box2D will create threads and use
 	// an internal scheduler.
-	WorkerCount int
+	WorkerCount int32
 
 	// Function to spawn tasks
 	EnqueueTask EnqueueTaskCallback
@@ -159,7 +159,7 @@ type WorldDef struct {
 	Capacity Capacity
 
 	// Used internally to detect a valid definition. DO NOT SET.
-	InternalValue int
+	InternalValue int32
 }
 
 func DefaultWorldDef() WorldDef {
@@ -280,7 +280,7 @@ type BodyDef struct {
 	AllowFastRotation bool
 
 	// Used internally to detect a valid definition. DO NOT SET.
-	InternalValue int
+	InternalValue int32
 }
 
 func DefaultBodyDef() BodyDef {
@@ -321,7 +321,7 @@ type Filter struct {
 	// For example, you may want ragdolls to collide with other ragdolls but you don't want
 	// ragdoll self-collision. In this case you would give each ragdoll a unique negative group index
 	// and apply that group index to all shapes on the ragdoll.
-	GroupIndex int
+	GroupIndex int32
 }
 
 // Use this to initialize your filter
@@ -462,7 +462,7 @@ type ShapeDef struct {
 	UpdateBodyMass bool
 
 	// Used internally to detect a valid definition. DO NOT SET.
-	InternalValue int
+	InternalValue int32
 }
 
 // Use this to initialize your shape definition
@@ -987,10 +987,10 @@ type SensorEvents struct {
 	EndEvents *b2SensorEndTouchEvent
 
 	// The number of begin touch events
-	BeginCount int
+	BeginCount int32
 
 	// The number of end touch events
-	EndCount int
+	EndCount int32
 }
 
 // A begin touch event is generated when two shapes begin touching.
@@ -1068,13 +1068,13 @@ type ContactEvents struct {
 	HitEvents *b2ContactHitEvent
 
 	// Number of begin touch events
-	BeginCount int
+	BeginCount int32
 
 	// Number of end touch events
-	EndCount int
+	EndCount int32
 
 	// Number of hit events
-	HitCount int
+	HitCount int32
 }
 
 // Body move events triggered when a body moves.
@@ -1102,7 +1102,7 @@ type BodyEvents struct {
 	MoveEvents *BodyMoveEvent
 
 	// Number of move events
-	MoveCount int
+	MoveCount int32
 }
 
 // Joint events report joints that are awake and have a force and/or torque exceeding the threshold
@@ -1123,20 +1123,21 @@ type JointEvents struct {
 	JointEvents *JointEvent
 
 	// Number of events
-	Count int
+	Count int32
 }
-
-/*
 
 // The contact data for two shapes. By convention the manifold normal points
 // from shape A to shape B.
 // @see b2Shape_GetContactData() and b2Body_GetContactData()
-type  b2ContactData struct {
-	b2ContactId contactId;
-	b2ShapeId shapeIdA;
-	b2ShapeId shapeIdB;
-	b2Manifold manifold;
-} b2ContactData;
+type ContactData struct {
+	ContactId ContactId
+	ShapeIdA  ShapeId
+	ShapeIdB  ShapeId
+	Manifold  Manifold
+}
+
+/*
+
 
 // Prototype for a contact filter callback.
 // This is called when a contact pair is considered for collision. This allows you to
@@ -1172,7 +1173,7 @@ typedef bool b2PreSolveFcn( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Vec2 point
 // @see b2World_OverlapABB
 // @return false to terminate the query.
 // @ingroup world
-type b2OverlapResultFcn = func(shapeId ShapeId, context any) bool
+type OverlapResultFcn = func(shapeId ShapeId, context any) bool
 
 /*
 // Prototype callback for ray and shape casts.
@@ -1204,152 +1205,152 @@ typedef bool b2PlaneResultFcn( b2ShapeId shapeId, const b2PlaneResult* plane, an
 type HexColor int32
 
 const (
-	b2_colorAliceBlue            HexColor = 0xF0F8FF
-	b2_colorAntiqueWhite         HexColor = 0xFAEBD7
-	b2_colorAqua                 HexColor = 0x00FFFF
-	b2_colorAquamarine           HexColor = 0x7FFFD4
-	b2_colorAzure                HexColor = 0xF0FFFF
-	b2_colorBeige                HexColor = 0xF5F5DC
-	b2_colorBisque               HexColor = 0xFFE4C4
-	b2_colorBlack                HexColor = 0x000000
-	b2_colorBlanchedAlmond       HexColor = 0xFFEBCD
-	b2_colorBlue                 HexColor = 0x0000FF
-	b2_colorBlueViolet           HexColor = 0x8A2BE2
-	b2_colorBrown                HexColor = 0xA52A2A
-	b2_colorBurlywood            HexColor = 0xDEB887
-	b2_colorCadetBlue            HexColor = 0x5F9EA0
-	b2_colorChartreuse           HexColor = 0x7FFF00
-	b2_colorChocolate            HexColor = 0xD2691E
-	b2_colorCoral                HexColor = 0xFF7F50
-	b2_colorCornflowerBlue       HexColor = 0x6495ED
-	b2_colorCornsilk             HexColor = 0xFFF8DC
-	b2_colorCrimson              HexColor = 0xDC143C
-	b2_colorCyan                 HexColor = 0x00FFFF
-	b2_colorDarkBlue             HexColor = 0x00008B
-	b2_colorDarkCyan             HexColor = 0x008B8B
-	b2_colorDarkGoldenRod        HexColor = 0xB8860B
-	b2_colorDarkGray             HexColor = 0xA9A9A9
-	b2_colorDarkGreen            HexColor = 0x006400
-	b2_colorDarkKhaki            HexColor = 0xBDB76B
-	b2_colorDarkMagenta          HexColor = 0x8B008B
-	b2_colorDarkOliveGreen       HexColor = 0x556B2F
-	b2_colorDarkOrange           HexColor = 0xFF8C00
-	b2_colorDarkOrchid           HexColor = 0x9932CC
-	b2_colorDarkRed              HexColor = 0x8B0000
-	b2_colorDarkSalmon           HexColor = 0xE9967A
-	b2_colorDarkSeaGreen         HexColor = 0x8FBC8F
-	b2_colorDarkSlateBlue        HexColor = 0x483D8B
-	b2_colorDarkSlateGray        HexColor = 0x2F4F4F
-	b2_colorDarkTurquoise        HexColor = 0x00CED1
-	b2_colorDarkViolet           HexColor = 0x9400D3
-	b2_colorDeepPink             HexColor = 0xFF1493
-	b2_colorDeepSkyBlue          HexColor = 0x00BFFF
-	b2_colorDimGray              HexColor = 0x696969
-	b2_colorDodgerBlue           HexColor = 0x1E90FF
-	b2_colorFireBrick            HexColor = 0xB22222
-	b2_colorFloralWhite          HexColor = 0xFFFAF0
-	b2_colorForestGreen          HexColor = 0x228B22
-	b2_colorFuchsia              HexColor = 0xFF00FF
-	b2_colorGainsboro            HexColor = 0xDCDCDC
-	b2_colorGhostWhite           HexColor = 0xF8F8FF
-	b2_colorGold                 HexColor = 0xFFD700
-	b2_colorGoldenRod            HexColor = 0xDAA520
-	b2_colorGray                 HexColor = 0x808080
-	b2_colorGreen                HexColor = 0x008000
-	b2_colorGreenYellow          HexColor = 0xADFF2F
-	b2_colorHoneyDew             HexColor = 0xF0FFF0
-	b2_colorHotPink              HexColor = 0xFF69B4
-	b2_colorIndianRed            HexColor = 0xCD5C5C
-	b2_colorIndigo               HexColor = 0x4B0082
-	b2_colorIvory                HexColor = 0xFFFFF0
-	b2_colorKhaki                HexColor = 0xF0E68C
-	b2_colorLavender             HexColor = 0xE6E6FA
-	b2_colorLavenderBlush        HexColor = 0xFFF0F5
-	b2_colorLawnGreen            HexColor = 0x7CFC00
-	b2_colorLemonChiffon         HexColor = 0xFFFACD
-	b2_colorLightBlue            HexColor = 0xADD8E6
-	b2_colorLightCoral           HexColor = 0xF08080
-	b2_colorLightCyan            HexColor = 0xE0FFFF
-	b2_colorLightGoldenRodYellow HexColor = 0xFAFAD2
-	b2_colorLightGray            HexColor = 0xD3D3D3
-	b2_colorLightGreen           HexColor = 0x90EE90
-	b2_colorLightPink            HexColor = 0xFFB6C1
-	b2_colorLightSalmon          HexColor = 0xFFA07A
-	b2_colorLightSeaGreen        HexColor = 0x20B2AA
-	b2_colorLightSkyBlue         HexColor = 0x87CEFA
-	b2_colorLightSlateGray       HexColor = 0x778899
-	b2_colorLightSteelBlue       HexColor = 0xB0C4DE
-	b2_colorLightYellow          HexColor = 0xFFFFE0
-	b2_colorLime                 HexColor = 0x00FF00
-	b2_colorLimeGreen            HexColor = 0x32CD32
-	b2_colorLinen                HexColor = 0xFAF0E6
-	b2_colorMagenta              HexColor = 0xFF00FF
-	b2_colorMaroon               HexColor = 0x800000
-	b2_colorMediumAquaMarine     HexColor = 0x66CDAA
-	b2_colorMediumBlue           HexColor = 0x0000CD
-	b2_colorMediumOrchid         HexColor = 0xBA55D3
-	b2_colorMediumPurple         HexColor = 0x9370DB
-	b2_colorMediumSeaGreen       HexColor = 0x3CB371
-	b2_colorMediumSlateBlue      HexColor = 0x7B68EE
-	b2_colorMediumSpringGreen    HexColor = 0x00FA9A
-	b2_colorMediumTurquoise      HexColor = 0x48D1CC
-	b2_colorMediumVioletRed      HexColor = 0xC71585
-	b2_colorMidnightBlue         HexColor = 0x191970
-	b2_colorMintCream            HexColor = 0xF5FFFA
-	b2_colorMistyRose            HexColor = 0xFFE4E1
-	b2_colorMoccasin             HexColor = 0xFFE4B5
-	b2_colorNavajoWhite          HexColor = 0xFFDEAD
-	b2_colorNavy                 HexColor = 0x000080
-	b2_colorOldLace              HexColor = 0xFDF5E6
-	b2_colorOlive                HexColor = 0x808000
-	b2_colorOliveDrab            HexColor = 0x6B8E23
-	b2_colorOrange               HexColor = 0xFFA500
-	b2_colorOrangeRed            HexColor = 0xFF4500
-	b2_colorOrchid               HexColor = 0xDA70D6
-	b2_colorPaleGoldenRod        HexColor = 0xEEE8AA
-	b2_colorPaleGreen            HexColor = 0x98FB98
-	b2_colorPaleTurquoise        HexColor = 0xAFEEEE
-	b2_colorPaleVioletRed        HexColor = 0xDB7093
-	b2_colorPapayaWhip           HexColor = 0xFFEFD5
-	b2_colorPeachPuff            HexColor = 0xFFDAB9
-	b2_colorPeru                 HexColor = 0xCD853F
-	b2_colorPink                 HexColor = 0xFFC0CB
-	b2_colorPlum                 HexColor = 0xDDA0DD
-	b2_colorPowderBlue           HexColor = 0xB0E0E6
-	b2_colorPurple               HexColor = 0x800080
-	b2_colorRebeccaPurple        HexColor = 0x663399
-	b2_colorRed                  HexColor = 0xFF0000
-	b2_colorRosyBrown            HexColor = 0xBC8F8F
-	b2_colorRoyalBlue            HexColor = 0x4169E1
-	b2_colorSaddleBrown          HexColor = 0x8B4513
-	b2_colorSalmon               HexColor = 0xFA8072
-	b2_colorSandyBrown           HexColor = 0xF4A460
-	b2_colorSeaGreen             HexColor = 0x2E8B57
-	b2_colorSeaShell             HexColor = 0xFFF5EE
-	b2_colorSienna               HexColor = 0xA0522D
-	b2_colorSilver               HexColor = 0xC0C0C0
-	b2_colorSkyBlue              HexColor = 0x87CEEB
-	b2_colorSlateBlue            HexColor = 0x6A5ACD
-	b2_colorSlateGray            HexColor = 0x708090
-	b2_colorSnow                 HexColor = 0xFFFAFA
-	b2_colorSpringGreen          HexColor = 0x00FF7F
-	b2_colorSteelBlue            HexColor = 0x4682B4
-	b2_colorTan                  HexColor = 0xD2B48C
-	b2_colorTeal                 HexColor = 0x008080
-	b2_colorThistle              HexColor = 0xD8BFD8
-	b2_colorTomato               HexColor = 0xFF6347
-	b2_colorTurquoise            HexColor = 0x40E0D0
-	b2_colorViolet               HexColor = 0xEE82EE
-	b2_colorWheat                HexColor = 0xF5DEB3
-	b2_colorWhite                HexColor = 0xFFFFFF
-	b2_colorWhiteSmoke           HexColor = 0xF5F5F5
-	b2_colorYellow               HexColor = 0xFFFF00
-	b2_colorYellowGreen          HexColor = 0x9ACD32
+	ColorAliceBlue            HexColor = 0xF0F8FF
+	ColorAntiqueWhite         HexColor = 0xFAEBD7
+	ColorAqua                 HexColor = 0x00FFFF
+	ColorAquamarine           HexColor = 0x7FFFD4
+	ColorAzure                HexColor = 0xF0FFFF
+	ColorBeige                HexColor = 0xF5F5DC
+	ColorBisque               HexColor = 0xFFE4C4
+	ColorBlack                HexColor = 0x000000
+	ColorBlanchedAlmond       HexColor = 0xFFEBCD
+	ColorBlue                 HexColor = 0x0000FF
+	ColorBlueViolet           HexColor = 0x8A2BE2
+	ColorBrown                HexColor = 0xA52A2A
+	ColorBurlywood            HexColor = 0xDEB887
+	ColorCadetBlue            HexColor = 0x5F9EA0
+	ColorChartreuse           HexColor = 0x7FFF00
+	ColorChocolate            HexColor = 0xD2691E
+	ColorCoral                HexColor = 0xFF7F50
+	ColorCornflowerBlue       HexColor = 0x6495ED
+	ColorCornsilk             HexColor = 0xFFF8DC
+	ColorCrimson              HexColor = 0xDC143C
+	ColorCyan                 HexColor = 0x00FFFF
+	ColorDarkBlue             HexColor = 0x00008B
+	ColorDarkCyan             HexColor = 0x008B8B
+	ColorDarkGoldenRod        HexColor = 0xB8860B
+	ColorDarkGray             HexColor = 0xA9A9A9
+	ColorDarkGreen            HexColor = 0x006400
+	ColorDarkKhaki            HexColor = 0xBDB76B
+	ColorDarkMagenta          HexColor = 0x8B008B
+	ColorDarkOliveGreen       HexColor = 0x556B2F
+	ColorDarkOrange           HexColor = 0xFF8C00
+	ColorDarkOrchid           HexColor = 0x9932CC
+	ColorDarkRed              HexColor = 0x8B0000
+	ColorDarkSalmon           HexColor = 0xE9967A
+	ColorDarkSeaGreen         HexColor = 0x8FBC8F
+	ColorDarkSlateBlue        HexColor = 0x483D8B
+	ColorDarkSlateGray        HexColor = 0x2F4F4F
+	ColorDarkTurquoise        HexColor = 0x00CED1
+	ColorDarkViolet           HexColor = 0x9400D3
+	ColorDeepPink             HexColor = 0xFF1493
+	ColorDeepSkyBlue          HexColor = 0x00BFFF
+	ColorDimGray              HexColor = 0x696969
+	ColorDodgerBlue           HexColor = 0x1E90FF
+	ColorFireBrick            HexColor = 0xB22222
+	ColorFloralWhite          HexColor = 0xFFFAF0
+	ColorForestGreen          HexColor = 0x228B22
+	ColorFuchsia              HexColor = 0xFF00FF
+	ColorGainsboro            HexColor = 0xDCDCDC
+	ColorGhostWhite           HexColor = 0xF8F8FF
+	ColorGold                 HexColor = 0xFFD700
+	ColorGoldenRod            HexColor = 0xDAA520
+	ColorGray                 HexColor = 0x808080
+	ColorGreen                HexColor = 0x008000
+	ColorGreenYellow          HexColor = 0xADFF2F
+	ColorHoneyDew             HexColor = 0xF0FFF0
+	ColorHotPink              HexColor = 0xFF69B4
+	ColorIndianRed            HexColor = 0xCD5C5C
+	ColorIndigo               HexColor = 0x4B0082
+	ColorIvory                HexColor = 0xFFFFF0
+	ColorKhaki                HexColor = 0xF0E68C
+	ColorLavender             HexColor = 0xE6E6FA
+	ColorLavenderBlush        HexColor = 0xFFF0F5
+	ColorLawnGreen            HexColor = 0x7CFC00
+	ColorLemonChiffon         HexColor = 0xFFFACD
+	ColorLightBlue            HexColor = 0xADD8E6
+	ColorLightCoral           HexColor = 0xF08080
+	ColorLightCyan            HexColor = 0xE0FFFF
+	ColorLightGoldenRodYellow HexColor = 0xFAFAD2
+	ColorLightGray            HexColor = 0xD3D3D3
+	ColorLightGreen           HexColor = 0x90EE90
+	ColorLightPink            HexColor = 0xFFB6C1
+	ColorLightSalmon          HexColor = 0xFFA07A
+	ColorLightSeaGreen        HexColor = 0x20B2AA
+	ColorLightSkyBlue         HexColor = 0x87CEFA
+	ColorLightSlateGray       HexColor = 0x778899
+	ColorLightSteelBlue       HexColor = 0xB0C4DE
+	ColorLightYellow          HexColor = 0xFFFFE0
+	ColorLime                 HexColor = 0x00FF00
+	ColorLimeGreen            HexColor = 0x32CD32
+	ColorLinen                HexColor = 0xFAF0E6
+	ColorMagenta              HexColor = 0xFF00FF
+	ColorMaroon               HexColor = 0x800000
+	ColorMediumAquaMarine     HexColor = 0x66CDAA
+	ColorMediumBlue           HexColor = 0x0000CD
+	ColorMediumOrchid         HexColor = 0xBA55D3
+	ColorMediumPurple         HexColor = 0x9370DB
+	ColorMediumSeaGreen       HexColor = 0x3CB371
+	ColorMediumSlateBlue      HexColor = 0x7B68EE
+	ColorMediumSpringGreen    HexColor = 0x00FA9A
+	ColorMediumTurquoise      HexColor = 0x48D1CC
+	ColorMediumVioletRed      HexColor = 0xC71585
+	ColorMidnightBlue         HexColor = 0x191970
+	ColorMintCream            HexColor = 0xF5FFFA
+	ColorMistyRose            HexColor = 0xFFE4E1
+	ColorMoccasin             HexColor = 0xFFE4B5
+	ColorNavajoWhite          HexColor = 0xFFDEAD
+	ColorNavy                 HexColor = 0x000080
+	ColorOldLace              HexColor = 0xFDF5E6
+	ColorOlive                HexColor = 0x808000
+	ColorOliveDrab            HexColor = 0x6B8E23
+	ColorOrange               HexColor = 0xFFA500
+	ColorOrangeRed            HexColor = 0xFF4500
+	ColorOrchid               HexColor = 0xDA70D6
+	ColorPaleGoldenRod        HexColor = 0xEEE8AA
+	ColorPaleGreen            HexColor = 0x98FB98
+	ColorPaleTurquoise        HexColor = 0xAFEEEE
+	ColorPaleVioletRed        HexColor = 0xDB7093
+	ColorPapayaWhip           HexColor = 0xFFEFD5
+	ColorPeachPuff            HexColor = 0xFFDAB9
+	ColorPeru                 HexColor = 0xCD853F
+	ColorPink                 HexColor = 0xFFC0CB
+	ColorPlum                 HexColor = 0xDDA0DD
+	ColorPowderBlue           HexColor = 0xB0E0E6
+	ColorPurple               HexColor = 0x800080
+	ColorRebeccaPurple        HexColor = 0x663399
+	ColorRed                  HexColor = 0xFF0000
+	ColorRosyBrown            HexColor = 0xBC8F8F
+	ColorRoyalBlue            HexColor = 0x4169E1
+	ColorSaddleBrown          HexColor = 0x8B4513
+	ColorSalmon               HexColor = 0xFA8072
+	ColorSandyBrown           HexColor = 0xF4A460
+	ColorSeaGreen             HexColor = 0x2E8B57
+	ColorSeaShell             HexColor = 0xFFF5EE
+	ColorSienna               HexColor = 0xA0522D
+	ColorSilver               HexColor = 0xC0C0C0
+	ColorSkyBlue              HexColor = 0x87CEEB
+	ColorSlateBlue            HexColor = 0x6A5ACD
+	ColorSlateGray            HexColor = 0x708090
+	ColorSnow                 HexColor = 0xFFFAFA
+	ColorSpringGreen          HexColor = 0x00FF7F
+	ColorSteelBlue            HexColor = 0x4682B4
+	ColorTan                  HexColor = 0xD2B48C
+	ColorTeal                 HexColor = 0x008080
+	ColorThistle              HexColor = 0xD8BFD8
+	ColorTomato               HexColor = 0xFF6347
+	ColorTurquoise            HexColor = 0x40E0D0
+	ColorViolet               HexColor = 0xEE82EE
+	ColorWheat                HexColor = 0xF5DEB3
+	ColorWhite                HexColor = 0xFFFFFF
+	ColorWhiteSmoke           HexColor = 0xF5F5F5
+	ColorYellow               HexColor = 0xFFFF00
+	ColorYellowGreen          HexColor = 0x9ACD32
 
-	b2_colorBox2DRed    HexColor = 0xDC3132
-	b2_colorBox2DBlue   HexColor = 0x30AEBF
-	b2_colorBox2DGreen  HexColor = 0x8CC924
-	b2_colorBox2DYellow HexColor = 0xFFEE8C
+	ColorBox2DRed    HexColor = 0xDC3132
+	ColorBox2DBlue   HexColor = 0x30AEBF
+	ColorBox2DGreen  HexColor = 0x8CC924
+	ColorBox2DYellow HexColor = 0xFFEE8C
 )
 
 // Get the visualization color assigned to a constraint graph color slot. The last index
