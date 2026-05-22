@@ -51,7 +51,7 @@ func TestSample(t *testing.T) {
 	groundBox := MakeBox(50.0, 10.0)
 	groundShapeDef := DefaultShapeDef()
 
-	groundShape := CreatePolygonShape(ground, &groundShapeDef, &groundBox)
+	groundShape := CreatePolygonShape(ground, &groundShapeDef, groundBox)
 	defer DestroyShape(groundShape, true)
 
 	bodyDef := DefaultBodyDef()
@@ -67,7 +67,7 @@ func TestSample(t *testing.T) {
 	shapeDef.Density = 1.0
 	shapeDef.Material.Friction = 0.3
 
-	CreatePolygonShape(body, &shapeDef, &dynamicBox)
+	CreatePolygonShape(body, &shapeDef, dynamicBox)
 
 	var timeStep float32 = 1.0 / 60.0
 	subStepCount := 4

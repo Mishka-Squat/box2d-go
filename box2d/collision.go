@@ -41,7 +41,7 @@ type ShapeProxy struct {
 	Points [B2_MAX_POLYGON_VERTICES]Vec2
 
 	// The number of points. Must be greater than 0.
-	Count int
+	Count int32
 
 	// The external radius of the point cloud. May be zero.
 	Radius float32
@@ -76,7 +76,7 @@ type CastOutput struct {
 	Fraction float32
 
 	// The number of iterations used
-	Iterations int
+	Iterations int32
 
 	// Did the cast hit?
 	Hit bool
@@ -136,7 +136,7 @@ type Polygon struct {
 	Radius float32
 
 	// The number of polygon vertices
-	Count int
+	Count int32
 }
 
 // A line segment with two-sided collision.
@@ -162,7 +162,7 @@ type ChainSegment struct {
 	Ghost2 Vec2
 
 	// The owning chain shape index (internal usage only)
-	ChainId int
+	chainId int32
 }
 
 /*
@@ -335,17 +335,18 @@ B2_API b2CastOutput b2ShapeCastSegment( const b2Segment* shape, const b2ShapeCas
 
 // Shape cast versus a convex polygon.
 B2_API b2CastOutput b2ShapeCastPolygon( const Polygon* shape, const b2ShapeCastInput* input );
-
+*/
 // A convex hull. Used to create convex polygons.
 // @warning Do not modify these values directly, instead use b2ComputeHull()
-type b2Hull struct {
+type Hull struct {
 	// The final points of the hull
-	Vec2 points[B2_MAX_POLYGON_VERTICES];
+	Points [B2_MAX_POLYGON_VERTICES]Vec2
 
 	// The number of points
-	int count;
-} b2Hull;
+	Count int32
+}
 
+/*
 // Compute the convex hull of a set of points. Returns an empty hull if it fails.
 // Some failure cases:
 // - all points very close together
@@ -370,89 +371,115 @@ B2_API bool b2ValidateHull( const b2Hull* hull );
 // are functions for computing the closest points between shapes, doing linear shape casts,
 // and doing rotational shape casts. The latter is called time of impact (TOI).
 //
+*/
 
 // Result of computing the distance between two line segments
 type b2SegmentDistanceResult struct {
 	// The closest point on the first segment
-	Vec2 closest1;
+	Closest1 Vec2
 
 	// The closest point on the second segment
-	Vec2 closest2;
+	Closest2 Vec2
 
 	// The barycentric coordinate on the first segment
-	float32 fraction1;
+	Fraction1 float32
 
 	// The barycentric coordinate on the second segment
-	float32 fraction2;
+	Fraction2 float32
 
 	// The squared distance between the closest points
-	float32 distanceSquared;
-} b2SegmentDistanceResult;
+	DistanceSquared float32
+}
 
+/*
 // Compute the distance between two line segments, clamping at the end points if needed.
 B2_API b2SegmentDistanceResult b2SegmentDistance( Vec2 p1, Vec2 q1, Vec2 p2, Vec2 q2 );
-
+*/
 // Used to warm start the GJK simplex. If you call this function multiple times with nearby
 // transforms this might improve performance. Otherwise you can zero initialize this.
 // The distance cache must be initialized to zero on the first call.
 // Users should generally just zero initialize this structure for each call.
 type b2SimplexCache struct {
 	// The number of stored simplex points
-	uint16_t count;
+	Count uint16
 
 	// The cached simplex indices on shape A
-	uint8_t indexA[3];
+	IndexA [3]uint8
 
 	// The cached simplex indices on shape B
-	uint8_t indexB[3];
-} b2SimplexCache;
-
-static const b2SimplexCache b2_emptySimplexCache = B2_ZERO_INIT;
+	IndexB [3]uint8
+}
 
 // Input for b2ShapeDistance
 type b2DistanceInput struct {
 	// The proxy for shape A
-	b2ShapeProxy proxyA;
+	ProxyA ShapeProxy
 
 	// The proxy for shape B
-	b2ShapeProxy proxyB;
+	ProxyB ShapeProxy
 
 	// The world transform for shape A
-	b2Transform transformA;
+	TransformA Transform
 
 	// The world transform for shape B
-	b2Transform transformB;
+	TransformB Transform
 
 	// Should the proxy radius be considered?
-	bool useRadii;
-} b2DistanceInput;
+	UseRadii bool
+}
 
 // Output for b2ShapeDistance
 type b2DistanceOutput struct {
-	Vec2 pointA;	  //< Closest point on shapeA
-	Vec2 pointB;	  //< Closest point on shapeB
-	Vec2 normal;	  //< Normal vector that points from A to B. Invalid if distance is zero.
-	float32 distance;	  //< The final distance, zero if overlapped
-	int iterations;	  //< Number of GJK iterations used
-	int simplexCount; //< The number of simplexes stored in the simplex array
-} b2DistanceOutput;
+	// Closest point on shapeA
+	PointA Vec2
+
+	// Closest point on shapeB
+	PointB Vec2
+
+	// Normal vector that points from A to B. Invalid if distance is zero.
+	Normal Vec2
+
+	// The final distance, zero if overlapped
+	Distance float32
+
+	// Number of GJK iterations used
+	Iterations int32
+
+	// The number of simplexes stored in the simplex array
+	SimplexCount int32
+}
 
 // Simplex vertex for debugging the GJK algorithm
 type b2SimplexVertex struct {
-	Vec2 wA;	//< support point in proxyA
-	Vec2 wB;	//< support point in proxyB
-	Vec2 w;	//< wB - wA
-	float32 a;	//< barycentric coordinate for closest point
-	int indexA; //< wA index
-	int indexB; //< wB index
-} b2SimplexVertex;
+	// support point in proxyA
+	WA Vec2
+
+	// support point in proxyB
+	WB Vec2
+
+	// wB - wA
+	W Vec2
+
+	// barycentric coordinate for closest point
+	A float32
+
+	// wA index
+	IndexA int32
+
+	// wB index
+	IndexB int32
+}
 
 // Simplex from the GJK algorithm
 type b2Simplex struct {
-	b2SimplexVertex v1, v2, v3; //< vertices
-	int count;					//< number of valid vertices
-} b2Simplex;
+	// vertices
+	V1, V2, V3 b2SimplexVertex
 
+	// number of valid vertices
+	Count int32
+}
+
+/*
 // Compute the closest points between two shapes represented as point clouds.
 // b2SimplexCache cache is input/output. On the first call set b2SimplexCache.count to zero.
 // The underlying GJK algorithm may be debugged by passing in debug simplexes and capacity. You may pass in NULL and 0 for these.

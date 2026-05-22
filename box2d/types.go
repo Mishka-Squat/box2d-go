@@ -9,15 +9,13 @@ import "C"
 import (
 	"unsafe"
 
+	"github.com/Mishka-Squat/gamemath/transform2"
 	"github.com/Mishka-Squat/gamemath/vector2"
 )
 
 type Vec2 = vector2.Float32
 type Rot = vector2.Float32
-type Transform struct {
-	p Vec2
-	q Rot
-}
+type Transform = transform2.Float32
 
 // / A 2-by-2 Matrix
 type Mat22 struct {
