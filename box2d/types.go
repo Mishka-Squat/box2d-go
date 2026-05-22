@@ -7,6 +7,8 @@ package box2d
 import "C"
 
 import (
+	"unsafe"
+
 	"github.com/Mishka-Squat/gamemath/vector2"
 )
 
@@ -159,7 +161,7 @@ type WorldDef struct {
 	Capacity Capacity
 
 	// Used internally to detect a valid definition. DO NOT SET.
-	InternalValue int32
+	internalValue int32
 }
 
 func DefaultWorldDef() WorldDef {
@@ -244,7 +246,7 @@ type BodyDef struct {
 	Name *byte
 
 	// Use this to store application specific body data.
-	UserData any
+	UserData unsafe.Pointer
 
 	// Motions locks to restrict linear and angular movement.
 	// Caution: may lead to softer constraints along the locked direction
@@ -280,7 +282,7 @@ type BodyDef struct {
 	AllowFastRotation bool
 
 	// Used internally to detect a valid definition. DO NOT SET.
-	InternalValue int32
+	internalValue int32
 }
 
 func DefaultBodyDef() BodyDef {
@@ -413,7 +415,7 @@ func DefaultSurfaceMaterial() SurfaceMaterial {
 // @ingroup shape
 type ShapeDef struct {
 	// Use this to store application specific shape data.
-	UserData any
+	UserData unsafe.Pointer
 
 	// The surface material for this shape.
 	Material SurfaceMaterial
@@ -462,7 +464,7 @@ type ShapeDef struct {
 	UpdateBodyMass bool
 
 	// Used internally to detect a valid definition. DO NOT SET.
-	InternalValue int32
+	internalValue int32
 }
 
 // Use this to initialize your shape definition
@@ -1088,7 +1090,7 @@ type ContactEvents struct {
 // and it is only populated with bodies that have moved.
 // @note If sleeping is disabled all dynamic and kinematic bodies will trigger move events.
 type BodyMoveEvent struct {
-	UserData   any
+	UserData   unsafe.Pointer
 	Transform  Transform
 	BodyId     BodyId
 	FellAsleep bool
@@ -1112,7 +1114,7 @@ type JointEvent struct {
 	JointId JointId
 
 	// The user data from the joint for convenience
-	UserData any
+	UserData unsafe.Pointer
 }
 
 // Joint events are buffered in the world and are available
@@ -1442,7 +1444,7 @@ type DebugDraw struct {
 	DrawIslands bool
 
 	// User context that is passed as an argument to drawing callback functions
-	Context any
+	Context unsafe.Pointer
 }
 
 // Use this to initialize your drawing interface. This allows you to implement a sub-set

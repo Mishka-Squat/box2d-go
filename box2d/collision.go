@@ -168,44 +168,103 @@ type ChainSegment struct {
 /*
 // Validate ray cast input data (NaN, etc)
 B2_API bool b2IsValidRay( const b2RayCastInput* input );
+*/
 
+func MakeCircle(radius float32) Circle {
+	return Circle{
+		Radius: radius,
+	}
+}
+
+func MakeCircleOffset(center Vec2, radius float32) Circle {
+	return Circle{
+		Center: center,
+		Radius: radius,
+	}
+}
+
+/*
 // Make a convex polygon from a convex hull. This will assert if the hull is not valid.
 // @warning Do not manually fill in the hull data, it must come directly from b2ComputeHull
 B2_API Polygon b2MakePolygon( const b2Hull* hull, float32 radius );
 
 // Make an offset convex polygon from a convex hull. This will assert if the hull is not valid.
 // @warning Do not manually fill in the hull data, it must come directly from b2ComputeHull
-B2_API Polygon b2MakeOffsetPolygon( const b2Hull* hull, Vec2 position, b2Rot rotation );
+B2_API Polygon b2MakeOffsetPolygon( const b2Hull* hull, Vec2 position, Rot rotation );
 
 // Make an offset convex polygon from a convex hull. This will assert if the hull is not valid.
 // @warning Do not manually fill in the hull data, it must come directly from b2ComputeHull
-B2_API Polygon b2MakeOffsetRoundedPolygon( const b2Hull* hull, Vec2 position, b2Rot rotation, float32 radius );
+B2_API Polygon b2MakeOffsetRoundedPolygon( const b2Hull* hull, Vec2 position, Rot rotation, float32 radius );
 
+*/
 // Make a square polygon, bypassing the need for a convex hull.
 // @param halfWidth the half-width
-B2_API Polygon b2MakeSquare( float32 halfWidth );
-*/
+func MakeSquare(halfWidth float32) Polygon {
+	return MakeBox(halfWidth, halfWidth)
+}
+
 // Make a box (rectangle) polygon, bypassing the need for a convex hull.
 // @param halfWidth the half-width (x-axis)
 // @param halfHeight the half-height (y-axis)
 func MakeBox(halfWidth float32, halfHeight float32) Polygon {
-	r := C.b2MakeBox(C.float(halfWidth), C.float(halfHeight))
-	return *cast[Polygon](&r)
+	shape := Polygon{
+		Vertices: [B2_MAX_POLYGON_VERTICES]Vec2{
+			{X: -halfWidth, Y: -halfHeight},
+			{X: halfWidth, Y: -halfHeight},
+			{X: halfWidth, Y: halfHeight},
+			{X: -halfWidth, Y: halfHeight},
+		},
+		Normals: [B2_MAX_POLYGON_VERTICES]Vec2{
+			{X: 0.0, Y: -1.0},
+			{X: 1.0, Y: 0.0},
+			{X: 0.0, Y: 1.0},
+			{X: -1.0, Y: 0.0},
+		},
+		Centroid: Vec2{X: 0, Y: 0},
+		Radius:   0,
+		Count:    4,
+	}
+
+	return shape
 }
 
-/*
 // Make a rounded box, bypassing the need for a convex hull.
 // @param halfWidth the half-width (x-axis)
 // @param halfHeight the half-height (y-axis)
 // @param radius the radius of the rounded extension
-B2_API Polygon b2MakeRoundedBox( float32 halfWidth, float32 halfHeight, float32 radius );
+func MakeRoundedBox(halfWidth float32, halfHeight float32, radius float32) Polygon {
+	shape := MakeBox(halfWidth, halfHeight)
+	shape.Radius = radius
+	return shape
+}
 
+/*
 // Make an offset box, bypassing the need for a convex hull.
 // @param halfWidth the half-width (x-axis)
 // @param halfHeight the half-height (y-axis)
 // @param center the local center of the box
 // @param rotation the local rotation of the box
-B2_API Polygon b2MakeOffsetBox( float32 halfWidth, float32 halfHeight, Vec2 center, b2Rot rotation );
+func MakeOffsetBox(halfWidth float32, halfHeight float32, center Vec2, rotation Rot) Polygon {
+	shape := Polygon{
+		Vertices: [B2_MAX_POLYGON_VERTICES]Vec2{
+			{X: -halfWidth, Y: -halfHeight},
+			{X: halfWidth, Y: -halfHeight},
+			{X: halfWidth, Y: halfHeight},
+			{X: -halfWidth, Y: halfHeight},
+		},
+		Normals: [B2_MAX_POLYGON_VERTICES]Vec2{
+			{X: 0.0, Y: -1.0},
+			{X: 1.0, Y: 0.0},
+			{X: 0.0, Y: 1.0},
+			{X: -1.0, Y: 0.0},
+		},
+		Centroid: Vec2{X: 0, Y: 0},
+		Radius:   0,
+		Count:    4,
+	}
+
+	return shape
+}
 
 // Make an offset rounded box, bypassing the need for a convex hull.
 // @param halfWidth the half-width (x-axis)
@@ -213,7 +272,11 @@ B2_API Polygon b2MakeOffsetBox( float32 halfWidth, float32 halfHeight, Vec2 cent
 // @param center the local center of the box
 // @param rotation the local rotation of the box
 // @param radius the radius of the rounded extension
-B2_API Polygon b2MakeOffsetRoundedBox( float32 halfWidth, float32 halfHeight, Vec2 center, b2Rot rotation, float32 radius );
+func MakeOffsetRoundedBox(halfWidth float32, halfHeight float32, center Vec2, rotation Rot, radius float32) Polygon {
+	shape := MakeOffsetBox(halfWidth, halfHeight, center, rotation)
+	shape.Radius = radius
+	return shape
+}
 
 // Transform a polygon. This is useful for transferring a shape from one body to another.
 B2_API Polygon b2TransformPolygon( b2Transform transform, const Polygon* polygon );
@@ -415,7 +478,7 @@ B2_API b2CastOutput b2ShapeCast( const b2ShapeCastPairInput* input );
 B2_API b2ShapeProxy b2MakeProxy( const Vec2* points, int count, float32 radius );
 
 // Make a proxy with a transform. This is a deep copy of the points.
-B2_API b2ShapeProxy b2MakeOffsetProxy( const Vec2* points, int count, float32 radius, Vec2 position, b2Rot rotation );
+B2_API b2ShapeProxy b2MakeOffsetProxy( const Vec2* points, int count, float32 radius, Vec2 position, Rot rotation );
 
 // This describes the motion of a body/shape for TOI computation. Shapes are defined with respect to the body origin,
 // which may not coincide with the center of mass. However, to support dynamics we must interpolate the center of mass
@@ -424,8 +487,8 @@ type b2Sweep struct {
 	Vec2 localCenter; //< Local center of mass position
 	Vec2 c1;			//< Starting center of mass world position
 	Vec2 c2;			//< Ending center of mass world position
-	b2Rot q1;			//< Starting world rotation
-	b2Rot q2;			//< Ending world rotation
+	Rot q1;			//< Starting world rotation
+	Rot q2;			//< Ending world rotation
 } b2Sweep;
 
 // Evaluate the transform sweep at a specific time.

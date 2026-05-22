@@ -667,10 +667,10 @@ func Body_ComputeAABB(bodyId BodyId) AABB {
 // Create a circle shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-func CreateCircleShape(bodyId BodyId, def *ShapeDef, circle *Circle) ShapeId {
+func CreateCircleShape(bodyId BodyId, def *ShapeDef, circle Circle) ShapeId {
 	cbody := *cast[C.b2BodyId](&bodyId)
 	cdef := cast[C.b2ShapeDef](def)
-	ccircle := cast[C.b2Circle](circle)
+	ccircle := cast[C.b2Circle](&circle)
 	r := C.b2CreateCircleShape(cbody, cdef, ccircle)
 	return *cast[ShapeId](&r)
 }
@@ -678,10 +678,10 @@ func CreateCircleShape(bodyId BodyId, def *ShapeDef, circle *Circle) ShapeId {
 // Create a line segment shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-func CreateSegmentShape(bodyId BodyId, def *ShapeDef, segment *Segment) ShapeId {
+func CreateSegmentShape(bodyId BodyId, def *ShapeDef, segment Segment) ShapeId {
 	cbody := *cast[C.b2BodyId](&bodyId)
 	cdef := cast[C.b2ShapeDef](def)
-	csegment := cast[C.b2Segment](segment)
+	csegment := cast[C.b2Segment](&segment)
 	r := C.b2CreateSegmentShape(cbody, cdef, csegment)
 	return *cast[ShapeId](&r)
 }
@@ -689,10 +689,10 @@ func CreateSegmentShape(bodyId BodyId, def *ShapeDef, segment *Segment) ShapeId 
 // Create a capsule shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape, this will be b2_nullShapeId if the length is too small.
-func CreateCapsuleShape(bodyId BodyId, def *ShapeDef, capsule *Capsule) ShapeId {
+func CreateCapsuleShape(bodyId BodyId, def *ShapeDef, capsule Capsule) ShapeId {
 	cbody := *cast[C.b2BodyId](&bodyId)
 	cdef := cast[C.b2ShapeDef](def)
-	ccapsule := cast[C.b2Capsule](capsule)
+	ccapsule := cast[C.b2Capsule](&capsule)
 	r := C.b2CreateCapsuleShape(cbody, cdef, ccapsule)
 	return *cast[ShapeId](&r)
 }
@@ -700,10 +700,10 @@ func CreateCapsuleShape(bodyId BodyId, def *ShapeDef, capsule *Capsule) ShapeId 
 // Create a polygon shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-func CreatePolygonShape(bodyId BodyId, def *ShapeDef, polygon *Polygon) ShapeId {
+func CreatePolygonShape(bodyId BodyId, def *ShapeDef, polygon Polygon) ShapeId {
 	cbody := *cast[C.b2BodyId](&bodyId)
 	cdef := cast[C.b2ShapeDef](def)
-	cpolygon := cast[C.b2Polygon](polygon)
+	cpolygon := cast[C.b2Polygon](&polygon)
 	r := C.b2CreatePolygonShape(cbody, cdef, cpolygon)
 	return *cast[ShapeId](&r)
 }

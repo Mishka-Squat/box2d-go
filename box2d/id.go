@@ -81,28 +81,28 @@ func (b BodyId) Destroy() {
 	DestroyBody(b)
 }
 
-func (b BodyId) CreateCircleShape(def *ShapeDef, circle *Circle) ShapeId {
+func (b BodyId) CreateCircleShape(def *ShapeDef, circle Circle) ShapeId {
 	return CreateCircleShape(b, def, circle)
 }
 
 // Create a line segment shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-func (b BodyId) CreateSegmentShape(def *ShapeDef, segment *Segment) ShapeId {
+func (b BodyId) CreateSegmentShape(def *ShapeDef, segment Segment) ShapeId {
 	return CreateSegmentShape(b, def, segment)
 }
 
 // Create a capsule shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape, this will be b2_nullShapeId if the length is too small.
-func (b BodyId) CreateCapsuleShape(def *ShapeDef, capsule *Capsule) ShapeId {
+func (b BodyId) CreateCapsuleShape(def *ShapeDef, capsule Capsule) ShapeId {
 	return CreateCapsuleShape(b, def, capsule)
 }
 
 // Create a polygon shape and attach it to a body. The shape definition and geometry are fully cloned.
 // Contacts are not created until the next time step.
 // @return the shape id for accessing the shape
-func (b BodyId) CreatePolygonShape(def *ShapeDef, polygon *Polygon) ShapeId {
+func (b BodyId) CreatePolygonShape(def *ShapeDef, polygon Polygon) ShapeId {
 	return CreatePolygonShape(b, def, polygon)
 }
 
