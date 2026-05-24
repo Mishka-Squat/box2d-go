@@ -109,58 +109,85 @@ B2_API float32 b2World_CastMover( b2WorldId worldId, const Capsule* mover, Vec2 
 // kinematic character movement.
 B2_API void b2World_CollideMover( b2WorldId worldId, const Capsule* mover, b2QueryFilter filter, b2PlaneResultFcn* fcn,
 								  void* context );
-
+*/
 // Enable/disable sleep. If your application does not need sleeping, you can gain some performance
 // by disabling sleep completely at the world level.
 // @see b2WorldDef
-B2_API void b2World_EnableSleeping( b2WorldId worldId, bool flag );
+func World_EnableSleeping(worldId WorldId, flag bool) {
+	C.b2World_EnableSleeping(*cast[C.b2WorldId](&worldId), C.bool(flag))
+}
 
 // Is body sleeping enabled?
-B2_API bool b2World_IsSleepingEnabled( b2WorldId worldId );
+func World_IsSleepingEnabled(worldId WorldId) bool {
+	return bool(C.b2World_IsSleepingEnabled(*cast[C.b2WorldId](&worldId)))
+}
 
 // Enable/disable continuous collision between dynamic and static bodies. Generally you should keep continuous
 // collision enabled to prevent fast moving objects from going through static objects. The performance gain from
 // disabling continuous collision is minor.
 // @see b2WorldDef
-B2_API void b2World_EnableContinuous( b2WorldId worldId, bool flag );
+func World_EnableContinuous(worldId WorldId, flag bool) {
+	C.b2World_EnableContinuous(*cast[C.b2WorldId](&worldId), C.bool(flag))
+}
 
 // Is continuous collision enabled?
-B2_API bool b2World_IsContinuousEnabled( b2WorldId worldId );
+func World_IsContinuousEnabled(worldId WorldId) bool {
+	return bool(C.b2World_IsContinuousEnabled(*cast[C.b2WorldId](&worldId)))
+}
 
 // Adjust the restitution threshold. It is recommended not to make this value very small
 // because it will prevent bodies from sleeping. Usually in meters per second.
 // @see b2WorldDef
-B2_API void b2World_SetRestitutionThreshold( b2WorldId worldId, float32 value );
+func World_SetRestitutionThreshold(worldId WorldId, value float32) {
+	C.b2World_SetRestitutionThreshold(*cast[C.b2WorldId](&worldId), C.float(value))
+}
 
 // Get the the restitution speed threshold. Usually in meters per second.
-B2_API float32 b2World_GetRestitutionThreshold( b2WorldId worldId );
+func World_GetRestitutionThreshold(worldId WorldId) float32 {
+	return float32(C.b2World_GetRestitutionThreshold(*cast[C.b2WorldId](&worldId)))
+}
 
 // Adjust the hit event threshold. This controls the collision speed needed to generate a b2ContactHitEvent.
 // Usually in meters per second.
 // @see b2WorldDef::hitEventThreshold
-B2_API void b2World_SetHitEventThreshold( b2WorldId worldId, float32 value );
+func World_SetHitEventThreshold(worldId WorldId, value float32) {
+	C.b2World_SetHitEventThreshold(*cast[C.b2WorldId](&worldId), C.float(value))
+}
 
 // Get the the hit event speed threshold. Usually in meters per second.
-B2_API float32 b2World_GetHitEventThreshold( b2WorldId worldId );
+func World_GetHitEventThreshold(worldId WorldId) float32 {
+	return float32(C.b2World_GetHitEventThreshold(*cast[C.b2WorldId](&worldId)))
+}
 
 // Register the custom filter callback. This is optional.
-B2_API void b2World_SetCustomFilterCallback( b2WorldId worldId, b2CustomFilterFcn* fcn, void* context );
+func World_SetCustomFilterCallback(worldId WorldId, fcn b2CustomFilterFcn, context any) {
+	C.b2World_SetCustomFilterCallback(*cast[C.b2WorldId](&worldId), nil, nil)
+}
 
 // Register the pre-solve callback. This is optional.
-B2_API void b2World_SetPreSolveCallback( b2WorldId worldId, b2PreSolveFcn* fcn, void* context );
+func World_SetPreSolveCallback(worldId WorldId, fcn b2PreSolveFcn, context any) {
+	C.b2World_SetPreSolveCallback(*cast[C.b2WorldId](&worldId), nil, nil)
+}
 
 // Set the gravity vector for the entire world. Box2D has no concept of an up direction and this
 // is left as a decision for the application. Usually in m/s^2.
 // @see b2WorldDef
-B2_API void b2World_SetGravity( b2WorldId worldId, Vec2 gravity );
+func World_SetGravity(worldId WorldId, gravity Vec2) {
+	C.b2World_SetGravity(*cast[C.b2WorldId](&worldId), *cast[C.b2Vec2](&gravity))
+}
 
 // Get the gravity vector
-B2_API Vec2 b2World_GetGravity( b2WorldId worldId );
+func World_GetGravity(worldId WorldId) Vec2 {
+	r := C.b2World_GetGravity(*cast[C.b2WorldId](&worldId))
+	return *cast[Vec2](&r)
+}
 
 // Apply a radial explosion
 // @param worldId The world id
 // @param explosionDef The explosion definition
-B2_API void b2World_Explode( b2WorldId worldId, const b2ExplosionDef* explosionDef );
+func World_Explode(worldId WorldId, explosionDef *ExplosionDef) {
+	C.b2World_Explode(*cast[C.b2WorldId](&worldId), cast[C.b2ExplosionDef](explosionDef))
+}
 
 // Adjust contact tuning parameters
 // @param worldId The world id
@@ -168,67 +195,110 @@ B2_API void b2World_Explode( b2WorldId worldId, const b2ExplosionDef* explosionD
 // @param dampingRatio The contact bounciness with 1 being critical damping (non-dimensional)
 // @param pushSpeed The maximum contact constraint push out speed (meters per second)
 // @note Advanced feature
-B2_API void b2World_SetContactTuning( b2WorldId worldId, float32 hertz, float32 dampingRatio, float32 pushSpeed );
+func World_SetContactTuning(worldId WorldId, hertz float32, dampingRatio float32, pushSpeed float32) {
+	C.b2World_SetContactTuning(*cast[C.b2WorldId](&worldId), C.float(hertz), C.float(dampingRatio), C.float(pushSpeed))
+}
 
 // Set the contact point recycling distance. Setting this to zero disables contact point recycling.
 // Usually in meters.
-B2_API void b2World_SetContactRecycleDistance( b2WorldId worldId, float32 recycleDistance );
+func World_SetContactRecycleDistance(worldId WorldId, recycleDistance float32) {
+	C.b2World_SetContactRecycleDistance(*cast[C.b2WorldId](&worldId), C.float(recycleDistance))
+}
 
 // Get the contact point recycling distance. Usually in meters.
-B2_API float32 b2World_GetContactRecycleDistance( b2WorldId worldId );
+func World_GetContactRecycleDistance(worldId WorldId) float32 {
+	return float32(C.b2World_GetContactRecycleDistance(*cast[C.b2WorldId](&worldId)))
+}
 
 // Set the maximum linear speed. Usually in m/s.
-B2_API void b2World_SetMaximumLinearSpeed( b2WorldId worldId, float32 maximumLinearSpeed );
+func World_SetMaximumLinearSpeed(worldId WorldId, maximumLinearSpeed float32) {
+	C.b2World_SetMaximumLinearSpeed(*cast[C.b2WorldId](&worldId), C.float(maximumLinearSpeed))
+}
 
 // Get the maximum linear speed. Usually in m/s.
-B2_API float32 b2World_GetMaximumLinearSpeed( b2WorldId worldId );
+func World_GetMaximumLinearSpeed(worldId WorldId) float32 {
+	return float32(C.b2World_GetMaximumLinearSpeed(*cast[C.b2WorldId](&worldId)))
+}
 
 // Enable/disable constraint warm starting. Advanced feature for testing. Disabling
 // warm starting greatly reduces stability and provides no performance gain.
-B2_API void b2World_EnableWarmStarting( b2WorldId worldId, bool flag );
+func World_EnableWarmStarting(worldId WorldId, flag bool) {
+	C.b2World_EnableWarmStarting(*cast[C.b2WorldId](&worldId), C.bool(flag))
+}
 
 // Is constraint warm starting enabled?
-B2_API bool b2World_IsWarmStartingEnabled( b2WorldId worldId );
+func World_IsWarmStartingEnabled(worldId WorldId) bool {
+	return bool(C.b2World_IsWarmStartingEnabled(*cast[C.b2WorldId](&worldId)))
+}
 
 // Get the number of awake bodies.
-B2_API int b2World_GetAwakeBodyCount( b2WorldId worldId );
+func World_GetAwakeBodyCount(worldId WorldId) int {
+	return int(C.b2World_GetAwakeBodyCount(*cast[C.b2WorldId](&worldId)))
+}
 
 // Get the current world performance profile
-B2_API b2Profile b2World_GetProfile( b2WorldId worldId );
+func World_GetProfile(worldId WorldId) Profile {
+	r := C.b2World_GetProfile(*cast[C.b2WorldId](&worldId))
+	return *cast[Profile](&r)
+}
 
 // Get world counters and sizes
-B2_API b2Counters b2World_GetCounters( b2WorldId worldId );
+func World_GetCounters(worldId WorldId) Counters {
+	r := C.b2World_GetCounters(*cast[C.b2WorldId](&worldId))
+	return *cast[Counters](&r)
+}
 
 // Get max capacity. This can be used with b2WorldDef to avoid run-time allocations and copies
-B2_API b2Capacity b2World_GetMaxCapacity( b2WorldId worldId );
+func World_GetMaxCapacity(worldId WorldId) Capacity {
+	r := C.b2World_GetMaxCapacity(*cast[C.b2WorldId](&worldId))
+	return *cast[Capacity](&r)
+}
 
+/*
 // Set the user data pointer.
-B2_API void b2World_SetUserData( b2WorldId worldId, void* userData );
+func World_SetUserData(worldId WorldId, userData any) {
+
+}
 
 // Get the user data pointer.
-B2_API void* b2World_GetUserData( b2WorldId worldId );
+func World_GetUserData(worldId WorldId) any {
+
+}
 
 // Set the friction callback. Passing NULL resets to default.
-B2_API void b2World_SetFrictionCallback( b2WorldId worldId, b2FrictionCallback* callback );
+func World_SetFrictionCallback(worldId WorldId, callback FrictionCallback) {
+
+}
 
 // Set the restitution callback. Passing NULL resets to default.
-B2_API void b2World_SetRestitutionCallback( b2WorldId worldId, b2RestitutionCallback* callback );
+func World_SetRestitutionCallback(worldId WorldId, callback RestitutionCallback) {
 
+}
+*/
 // Set the worker count. Must be between in the range [1, B2_MAX_WORKERS]
-B2_API void b2World_SetWorkerCount( b2WorldId worldId, int count );
+func World_SetWorkerCount(worldId WorldId, count int) {
+	C.b2World_SetWorkerCount(*cast[C.b2WorldId](&worldId), C.int(count))
+}
 
 // Get the worker count.
-B2_API int b2World_GetWorkerCount( b2WorldId worldId );
+func World_GetWorkerCount(worldId WorldId) int {
+	return int(C.b2World_GetWorkerCount(*cast[C.b2WorldId](&worldId)))
+}
 
 // Dump memory stats to box2d_memory.txt
-B2_API void b2World_DumpMemoryStats( b2WorldId worldId );
+func World_DumpMemoryStats(worldId WorldId) {
+	C.b2World_DumpMemoryStats(*cast[C.b2WorldId](&worldId))
+}
 
 // This is for internal testing
-B2_API void b2World_RebuildStaticTree( b2WorldId worldId );
+func World_RebuildStaticTree(worldId WorldId) {
+	C.b2World_RebuildStaticTree(*cast[C.b2WorldId](&worldId))
+}
 
 // This is for internal testing
-B2_API void b2World_EnableSpeculative( b2WorldId worldId, bool flag );
-*/
+func World_EnableSpeculative(worldId WorldId, flag bool) {
+	C.b2World_EnableSpeculative(*cast[C.b2WorldId](&worldId), C.bool(flag))
+}
 
 // Create a rigid body given a definition. No reference to the definition is retained. So you can create the definition
 // on the stack and pass it as a pointer.

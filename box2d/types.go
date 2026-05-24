@@ -29,6 +29,12 @@ type AABB struct {
 	upperBound Vec2
 }
 
+// separation = dot(normal, point) - offset
+type Plane struct {
+	Normal Vec2
+	Offset float32
+}
+
 // Task interface
 // This is the prototype for a Box2D task. Your task system is expected to run this callback on a worker thread,
 // exactly once per enqueue, passing back the same taskContext pointer supplied to b2EnqueueTaskCallback.
@@ -522,57 +528,58 @@ type  b2ChainDef struct {
 // Use this to initialize your chain definition
 // @ingroup shape
 B2_API b2ChainDef b2DefaultChainDef( void );
-
+*/
 //! @cond
 // Profiling data. Times are in milliseconds.
-type  b2Profile struct {
-	float32 step;
-	float32 pairs;
-	float32 collide;
-	float32 solve;
-	float32 solverSetup;
-	float32 constraints;
-	float32 prepareConstraints;
-	float32 integrateVelocities;
-	float32 warmStart;
-	float32 solveImpulses;
-	float32 integratePositions;
-	float32 relaxImpulses;
-	float32 applyRestitution;
-	float32 storeImpulses;
-	float32 splitIslands;
-	float32 transforms;
-	float32 sensorHits;
-	float32 jointEvents;
-	float32 hitEvents;
-	float32 refit;
-	float32 bullets;
-	float32 sleepIslands;
-	float32 sensors;
-} b2Profile;
+type Profile struct {
+	Step                float32
+	Pairs               float32
+	Collide             float32
+	Solve               float32
+	SolverSetup         float32
+	Constraints         float32
+	PrepareConstraints  float32
+	IntegrateVelocities float32
+	WarmStart           float32
+	SolveImpulses       float32
+	IntegratePositions  float32
+	RelaxImpulses       float32
+	ApplyRestitution    float32
+	StoreImpulses       float32
+	SplitIslands        float32
+	Transforms          float32
+	SensorHits          float32
+	JointEvents         float32
+	HitEvents           float32
+	Refit               float32
+	Bullets             float32
+	SleepIslands        float32
+	Sensors             float32
+}
 
 // Counters that give details of the simulation size.
-type  b2Counters struct {
-	int bodyCount;
-	int shapeCount;
-	int contactCount;
-	int jointCount;
-	int islandCount;
-	int stackUsed;
-	int staticTreeHeight;
-	int treeHeight;
-	int byteCount;
-	int taskCount;
-	int colorCounts[24];
+type Counters struct {
+	BodyCount        int32
+	ShapeCount       int32
+	ContactCount     int32
+	JointCount       int32
+	IslandCount      int32
+	StackUsed        int32
+	StaticTreeHeight int32
+	TreeHeight       int32
+	ByteCount        int32
+	TaskCount        int32
+	ColorCounts      [24]int32
 
 	// Number of contacts touched by the collide pass (graph contacts + awake-set non-touching).
-	int awakeContactCount;
+	AwakeContactCount int32
 
 	// Number of contacts recycled in the most recent step.
-	int recycledContactCount;
-} b2Counters;
-//! @endcond
+	RecycledContactCount int32
+}
 
+//! @endcond
+/*
 // Joint type enumeration
 //
 // This is useful because all joint types use b2JointId and sometimes you
@@ -906,29 +913,30 @@ type  b2WheelJointDef struct {
 // Use this to initialize your joint definition
 // @ingroup wheel_joint
 B2_API b2WheelJointDef b2DefaultWheelJointDef( void );
-
+*/
 // The explosion definition is used to configure options for explosions. Explosions
 // consider shape geometry when computing the impulse.
 // @ingroup world
-type  b2ExplosionDef struct {
+type ExplosionDef struct {
 	// Mask bits to filter shapes
-	uint64_t maskBits;
+	MaskBits uint64
 
 	// The center of the explosion in world space
-	b2Vec2 position;
+	Position Vec2
 
 	// The radius of the explosion
-	float radius;
+	Radius float32
 
 	// The falloff distance beyond the radius. Impulse is reduced to zero at this distance.
-	float falloff;
+	Falloff float32
 
 	// Impulse per unit length. This applies an impulse according to the shape perimeter that
 	// is facing the explosion. Explosions only apply to circles, capsules, and polygons. This
 	// may be negative for implosions.
-	float impulsePerLength;
-} b2ExplosionDef;
+	ImpulsePerLength float32
+}
 
+/*
 // Use this to initialize your explosion definition
 // @ingroup world
 B2_API b2ExplosionDef b2DefaultExplosionDef( void );

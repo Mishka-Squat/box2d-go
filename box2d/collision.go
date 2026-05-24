@@ -167,7 +167,7 @@ type ChainSegment struct {
 
 /*
 // Validate ray cast input data (NaN, etc)
-B2_API bool b2IsValidRay( const b2RayCastInput* input );
+B2_API bool b2IsValidRay( const RayCastInput* input );
 */
 
 func MakeCircle(radius float32) Circle {
@@ -291,16 +291,16 @@ B2_API b2MassData b2ComputeCapsuleMass( const b2Capsule* shape, float32 density 
 B2_API b2MassData b2ComputePolygonMass( const Polygon* shape, float32 density );
 
 // Compute the bounding box of a transformed circle
-B2_API b2AABB b2ComputeCircleAABB( const b2Circle* shape, b2Transform transform );
+B2_API AABB b2ComputeCircleAABB( const b2Circle* shape, b2Transform transform );
 
 // Compute the bounding box of a transformed capsule
-B2_API b2AABB b2ComputeCapsuleAABB( const b2Capsule* shape, b2Transform transform );
+B2_API AABB b2ComputeCapsuleAABB( const b2Capsule* shape, b2Transform transform );
 
 // Compute the bounding box of a transformed polygon
-B2_API b2AABB b2ComputePolygonAABB( const Polygon* shape, b2Transform transform );
+B2_API AABB b2ComputePolygonAABB( const Polygon* shape, b2Transform transform );
 
 // Compute the bounding box of a transformed line segment
-B2_API b2AABB b2ComputeSegmentAABB( const b2Segment* shape, b2Transform transform );
+B2_API AABB b2ComputeSegmentAABB( const b2Segment* shape, b2Transform transform );
 
 // Test a point for overlap with a circle in local space
 B2_API bool b2PointInCircle( const b2Circle* shape, Vec2 point );
@@ -312,29 +312,29 @@ B2_API bool b2PointInCapsule( const b2Capsule* shape, Vec2 point );
 B2_API bool b2PointInPolygon( const Polygon* shape, Vec2 point );
 
 // Ray cast versus circle shape in local space.
-B2_API b2CastOutput b2RayCastCircle( const b2Circle* shape, const b2RayCastInput* input );
+B2_API b2CastOutput b2RayCastCircle( const b2Circle* shape, const RayCastInput* input );
 
 // Ray cast versus capsule shape in local space.
-B2_API b2CastOutput b2RayCastCapsule( const b2Capsule* shape, const b2RayCastInput* input );
+B2_API b2CastOutput b2RayCastCapsule( const b2Capsule* shape, const RayCastInput* input );
 
 // Ray cast versus segment shape in local space. Optionally treat the segment as one-sided with hits from
 // the left side being treated as a miss.
-B2_API b2CastOutput b2RayCastSegment( const b2Segment* shape, const b2RayCastInput* input, bool oneSided );
+B2_API b2CastOutput b2RayCastSegment( const b2Segment* shape, const RayCastInput* input, bool oneSided );
 
 // Ray cast versus polygon shape in local space.
-B2_API b2CastOutput b2RayCastPolygon( const Polygon* shape, const b2RayCastInput* input );
+B2_API b2CastOutput b2RayCastPolygon( const Polygon* shape, const RayCastInput* input );
 
 // Shape cast versus a circle.
-B2_API b2CastOutput b2ShapeCastCircle(const b2Circle* shape,  const b2ShapeCastInput* input );
+B2_API b2CastOutput b2ShapeCastCircle(const b2Circle* shape,  const ShapeCastInput* input );
 
 // Shape cast versus a capsule.
-B2_API b2CastOutput b2ShapeCastCapsule( const b2Capsule* shape, const b2ShapeCastInput* input);
+B2_API b2CastOutput b2ShapeCastCapsule( const b2Capsule* shape, const ShapeCastInput* input);
 
 // Shape cast versus a line segment.
-B2_API b2CastOutput b2ShapeCastSegment( const b2Segment* shape, const b2ShapeCastInput* input );
+B2_API b2CastOutput b2ShapeCastSegment( const b2Segment* shape, const ShapeCastInput* input );
 
 // Shape cast versus a convex polygon.
-B2_API b2CastOutput b2ShapeCastPolygon( const Polygon* shape, const b2ShapeCastInput* input );
+B2_API b2CastOutput b2ShapeCastPolygon( const Polygon* shape, const ShapeCastInput* input );
 */
 // A convex hull. Used to create convex polygons.
 // @warning Do not modify these values directly, instead use b2ComputeHull()
@@ -743,52 +743,71 @@ type TreeStats struct {
 	LeafVisits int32
 }
 
-/*
 // Constructing the tree initializes the node pool.
-B2_API b2DynamicTree b2DynamicTree_Create( int proxyCapacity );
+func DynamicTree_Create(proxyCapacity int) DynamicTree {
+	r := C.b2DynamicTree_Create(C.int(proxyCapacity))
+	return *cast[DynamicTree](&r)
+}
 
 // Destroy the tree, freeing the node pool.
-B2_API void b2DynamicTree_Destroy( b2DynamicTree* tree );
+func DynamicTree_Destroy(tree *DynamicTree) {
+	C.b2DynamicTree_Destroy(cast[C.b2DynamicTree](tree))
+}
 
 // Create a proxy. Provide an AABB and a userData value.
-B2_API int b2DynamicTree_CreateProxy( b2DynamicTree* tree, b2AABB aabb, uint64_t categoryBits, uint64_t userData );
+func DynamicTree_CreateProxy(tree *DynamicTree, aabb AABB, categoryBits uint64, userData uint64) int {
+	return int(C.b2DynamicTree_CreateProxy(cast[C.b2DynamicTree](tree), cast[C.b2AABB](&aabb), C.uint64_t(categoryBits), C.uint64_t(userData)))
+}
 
 // Destroy a proxy. This asserts if the id is invalid.
-B2_API void b2DynamicTree_DestroyProxy( b2DynamicTree* tree, int proxyId );
+func DynamicTree_DestroyProxy(tree *DynamicTree, proxyId int) {
+	C.b2DynamicTree_DestroyProxy(cast[C.b2DynamicTree](tree), C.int(proxyId))
+}
 
 // Move a proxy to a new AABB by removing and reinserting into the tree.
-B2_API void b2DynamicTree_MoveProxy( b2DynamicTree* tree, int proxyId, b2AABB aabb );
+func DynamicTree_MoveProxy(tree *DynamicTree, proxyId int, aabb AABB) {
+	C.b2DynamicTree_MoveProxy(cast[C.b2DynamicTree](tree), C.int(proxyId), cast[C.b2AABB](&aabb))
+}
 
 // Enlarge a proxy and enlarge ancestors as necessary.
-B2_API void b2DynamicTree_EnlargeProxy( b2DynamicTree* tree, int proxyId, b2AABB aabb );
+func DynamicTree_EnlargeProxy(tree *DynamicTree, proxyId int, aabb AABB) {
+	C.b2DynamicTree_EnlargeProxy(cast[C.b2DynamicTree](tree), C.int(proxyId), cast[C.b2AABB](&aabb))
+}
 
 // Modify the category bits on a proxy. This is an expensive operation.
-B2_API void b2DynamicTree_SetCategoryBits( b2DynamicTree* tree, int proxyId, uint64_t categoryBits );
+func DynamicTree_SetCategoryBits(tree *DynamicTree, proxyId int, categoryBits uint64) {
+	C.b2DynamicTree_SetCategoryBits(cast[C.b2DynamicTree](tree), C.int(proxyId), C.uint64_t(categoryBits))
+}
 
 // Get the category bits on a proxy.
-B2_API uint64_t b2DynamicTree_GetCategoryBits( b2DynamicTree* tree, int proxyId );
+func DynamicTree_GetCategoryBits(tree *DynamicTree, proxyId int) uint64 {
+	return uint64(C.b2DynamicTree_GetCategoryBits(cast[C.b2DynamicTree](tree), C.int(proxyId)))
+}
 
 // This function receives proxies found in the AABB query.
 // @return true if the query should continue
-typedef bool b2TreeQueryCallbackFcn( int proxyId, uint64_t userData, void* context );
+type b2TreeQueryCallbackFcn = func(proxyId int, userData uint64, context any) bool
 
+/*
 // Query an AABB for overlapping proxies. The callback class is called for each proxy that overlaps the supplied AABB.
 //	@return performance data
-B2_API b2TreeStats b2DynamicTree_Query( const b2DynamicTree* tree, b2AABB aabb, uint64_t maskBits,
-										b2TreeQueryCallbackFcn* callback, void* context );
+func DynamicTree_Query(tree *DynamicTree, aabb AABB, maskBits uint64, callback b2TreeQueryCallbackFcn, context any) TreeStats {
+
+}
 
 // Query an AABB for overlapping proxies. The callback class is called for each proxy that overlaps the supplied AABB.
 // No filtering is performed.
 //	@return performance data
-B2_API b2TreeStats b2DynamicTree_QueryAll( const b2DynamicTree* tree, b2AABB aabb, b2TreeQueryCallbackFcn* callback,
-										   void* context );
+func DynamicTree_QueryAll(tree *DynamicTree, aabb AABB, callback b2TreeQueryCallbackFcn, context any) TreeStats {
 
+}
+*/
 // This function receives clipped ray cast input for a proxy. The function
 // returns the new ray fraction.
 // - return a value of 0 to terminate the ray cast
 // - return a value less than input->maxFraction to clip the ray
 // - return a value of input->maxFraction to continue the ray cast without clipping
-typedef float32 b2TreeRayCastCallbackFcn( const b2RayCastInput* input, int proxyId, uint64_t userData, void* context );
+type b2TreeRayCastCallbackFcn func(input *RayCastInput, proxyId int, userData uint64, context any) float32
 
 // Ray cast against the proxies in the tree. This relies on the callback
 // to perform a exact ray cast in the case were the proxy contains a shape.
@@ -803,15 +822,18 @@ typedef float32 b2TreeRayCastCallbackFcn( const b2RayCastInput* input, int proxy
 // @param callback a callback class that is called for each proxy that is hit by the ray
 // @param context user context that is passed to the callback
 //	@return performance data
-B2_API b2TreeStats b2DynamicTree_RayCast( const b2DynamicTree* tree, const b2RayCastInput* input, uint64_t maskBits,
-										  b2TreeRayCastCallbackFcn* callback, void* context );
+/*
+func DynamicTree_RayCast(tree *DynamicTree, input *RayCastInput, maskBits uint64, callback b2TreeRayCastCallbackFcn, context any) TreeStats {
+
+}
+*/
 
 // This function receives clipped ray cast input for a proxy. The function
 // returns the new ray fraction.
 // - return a value of 0 to terminate the ray cast
 // - return a value less than input->maxFraction to clip the ray
 // - return a value of input->maxFraction to continue the ray cast without clipping
-typedef float32 b2TreeShapeCastCallbackFcn( const b2ShapeCastInput* input, int proxyId, uint64_t userData, void* context );
+type b2TreeShapeCastCallbackFcn = func(input *ShapeCastInput, proxyId int, userData uint64, context any) float32
 
 // Ray cast against the proxies in the tree. This relies on the callback
 // to perform a exact ray cast in the case were the proxy contains a shape.
@@ -824,38 +846,64 @@ typedef float32 b2TreeShapeCastCallbackFcn( const b2ShapeCastInput* input, int p
 // @param callback a callback class that is called for each proxy that is hit by the shape
 // @param context user context that is passed to the callback
 //	@return performance data
-B2_API b2TreeStats b2DynamicTree_ShapeCast( const b2DynamicTree* tree, const b2ShapeCastInput* input, uint64_t maskBits,
-											b2TreeShapeCastCallbackFcn* callback, void* context );
+/*
+func DynamicTree_ShapeCast(tree *DynamicTree, input *ShapeCastInput, maskBits uint64, callback b2TreeShapeCastCallbackFcn, context any) TreeStats {
 
+}
+*/
 // Get the height of the binary tree.
-B2_API int b2DynamicTree_GetHeight( const b2DynamicTree* tree );
+func DynamicTree_GetHeight(tree *DynamicTree) int {
+	return int(C.b2DynamicTree_GetHeight(cast[C.b2DynamicTree](tree)))
+}
 
 // Get the ratio of the sum of the node areas to the root area.
-B2_API float32 b2DynamicTree_GetAreaRatio( const b2DynamicTree* tree );
+func DynamicTree_GetAreaRatio(tree *DynamicTree) float32 {
+	return float32(C.b2DynamicTree_GetAreaRatio(cast[C.b2DynamicTree](tree)))
+}
 
 // Get the bounding box that contains the entire tree
-B2_API b2AABB b2DynamicTree_GetRootBounds( const b2DynamicTree* tree );
+func DynamicTree_GetRootBounds(tree *DynamicTree) AABB {
+	r := C.b2DynamicTree_GetRootBounds(cast[C.b2DynamicTree](tree))
+	return *cast[AABB](&r)
+}
 
 // Get the number of proxies created
-B2_API int b2DynamicTree_GetProxyCount( const b2DynamicTree* tree );
+func DynamicTree_GetProxyCount(tree *DynamicTree) int {
+	return int(C.b2DynamicTree_GetProxyCount(cast[C.b2DynamicTree](tree)))
+}
 
 // Rebuild the tree while retaining subtrees that haven't changed. Returns the number of boxes sorted.
-B2_API int b2DynamicTree_Rebuild( b2DynamicTree* tree, bool fullBuild );
+func DynamicTree_Rebuild(tree *DynamicTree, fullBuild bool) int {
+	return int(C.b2DynamicTree_Rebuild(cast[C.b2DynamicTree](tree), C.bool(fullBuild)))
+}
 
 // Get the number of bytes used by this tree
-B2_API int b2DynamicTree_GetByteCount( const b2DynamicTree* tree );
+func DynamicTree_GetByteCount(tree *DynamicTree) int {
+	return int(C.b2DynamicTree_GetByteCount(cast[C.b2DynamicTree](tree)))
+}
 
+/*
 // Get proxy user data
-B2_API uint64_t b2DynamicTree_GetUserData( const b2DynamicTree* tree, int proxyId );
+func DynamicTree_GetUserData(tree *DynamicTree, proxyId int) uint64 {
+
+}
+*/
 
 // Get the AABB of a proxy
-B2_API b2AABB b2DynamicTree_GetAABB( const b2DynamicTree* tree, int proxyId );
+func DynamicTree_GetAABB(tree *DynamicTree, proxyId int) AABB {
+	r := C.b2DynamicTree_GetAABB(cast[C.b2DynamicTree](tree), C.int(proxyId))
+	return *cast[AABB](&r)
+}
 
 // Validate this tree. For testing.
-B2_API void b2DynamicTree_Validate( const b2DynamicTree* tree );
+func DynamicTree_Validate(tree *DynamicTree) {
+	C.b2DynamicTree_Validate(cast[C.b2DynamicTree](tree))
+}
 
 // Validate this tree has no enlarged AABBs. For testing.
-B2_API void b2DynamicTree_ValidateNoEnlarged( const b2DynamicTree* tree );
+func DynamicTree_ValidateNoEnlarged(tree *DynamicTree) {
+	C.b2DynamicTree_ValidateNoEnlarged(cast[C.b2DynamicTree](tree))
+}
 
 //
 // @defgroup character Character mover
@@ -863,51 +911,55 @@ B2_API void b2DynamicTree_ValidateNoEnlarged( const b2DynamicTree* tree );
 //
 
 // These are the collision planes returned from b2World_CollideMover
-type b2PlaneResult struct {
+type PlaneResult struct {
 	// The collision plane between the mover and a convex shape
-	b2Plane plane;
+	Plane Plane
 
 	// The collision point on the shape.
-	Vec2 point;
+	Point Vec2
 
 	// Did the collision register a hit? If not this plane should be ignored.
-	bool hit;
-} b2PlaneResult;
+	Hit bool
+}
 
 // These are collision planes that can be fed to b2SolvePlanes. Normally
 // this is assembled by the user from plane results in b2PlaneResult
-type b2CollisionPlane struct {
+type CollisionPlane struct {
 	// The collision plane between the mover and some shape
-	b2Plane plane;
+	Plane Plane
 
 	// Setting this to FLT_MAX makes the plane as rigid as possible. Lower values can
 	// make the plane collision soft. Usually in meters.
-	float32 pushLimit;
+	PushLimit float32
 
 	// The push on the mover determined by b2SolvePlanes. Usually in meters.
-	float32 push;
+	Push float32
 
 	// Indicates if b2ClipVector should clip against this plane. Should be false for soft collision.
-	bool clipVelocity;
-} b2CollisionPlane;
+	ClipVelocity bool
+}
 
 // Result returned by b2SolvePlanes
-type b2PlaneSolverResult struct {
+type PlaneSolverResult struct {
 	// The translation of the mover
-	Vec2 translation;
+	Translation Vec2
 
 	// The number of iterations used by the plane solver. For diagnostics.
-	int iterationCount;
-} b2PlaneSolverResult;
+	IterationCount int
+}
 
 // Solves the position of a mover that satisfies the given collision planes.
 // @param targetDelta the desired movement from the position used to generate the collision planes
 // @param planes the collision planes
 // @param count the number of collision planes
-B2_API b2PlaneSolverResult b2SolvePlanes( Vec2 targetDelta, b2CollisionPlane* planes, int count );
+func b2SolvePlanes(targetDelta Vec2, planes *CollisionPlane, count int) PlaneSolverResult {
+	r := C.b2SolvePlanes(cast[C.b2Vec2](&targetDelta), cast[C.b2CollisionPlane](planes), C.int(count))
+	return *cast[PlaneSolverResult](&r)
+}
 
 // Clips the velocity against the given collision planes. Planes with zero push or clipVelocity
 // set to false are skipped.
-B2_API Vec2 b2ClipVector( Vec2 vector, const b2CollisionPlane* planes, int count );
-
-*/
+func b2ClipVector(vector Vec2, planes *CollisionPlane, count int) Vec2 {
+	r := C.b2ClipVector(cast[C.b2Vec2](&vector), cast[C.b2CollisionPlane](planes), C.int(count))
+	return *cast[Vec2](&r)
+}
