@@ -750,37 +750,37 @@ func DynamicTree_Create(proxyCapacity int) DynamicTree {
 }
 
 // Destroy the tree, freeing the node pool.
-func DynamicTree_Destroy(tree *DynamicTree) {
+func (tree *DynamicTree) Destroy() {
 	C.b2DynamicTree_Destroy(cast[C.b2DynamicTree](tree))
 }
 
 // Create a proxy. Provide an AABB and a userData value.
-func DynamicTree_CreateProxy(tree *DynamicTree, aabb AABB, categoryBits uint64, userData uint64) int {
-	return int(C.b2DynamicTree_CreateProxy(cast[C.b2DynamicTree](tree), cast[C.b2AABB](&aabb), C.uint64_t(categoryBits), C.uint64_t(userData)))
+func (tree *DynamicTree) CreateProxy(aabb AABB, categoryBits uint64, userData uint64) int {
+	return int(C.b2DynamicTree_CreateProxy(cast[C.b2DynamicTree](tree), *cast[C.b2AABB](&aabb), C.uint64_t(categoryBits), C.uint64_t(userData)))
 }
 
 // Destroy a proxy. This asserts if the id is invalid.
-func DynamicTree_DestroyProxy(tree *DynamicTree, proxyId int) {
+func (tree *DynamicTree) DestroyProxy(proxyId int) {
 	C.b2DynamicTree_DestroyProxy(cast[C.b2DynamicTree](tree), C.int(proxyId))
 }
 
 // Move a proxy to a new AABB by removing and reinserting into the tree.
-func DynamicTree_MoveProxy(tree *DynamicTree, proxyId int, aabb AABB) {
-	C.b2DynamicTree_MoveProxy(cast[C.b2DynamicTree](tree), C.int(proxyId), cast[C.b2AABB](&aabb))
+func (tree *DynamicTree) MoveProxy(proxyId int, aabb AABB) {
+	C.b2DynamicTree_MoveProxy(cast[C.b2DynamicTree](tree), C.int(proxyId), *cast[C.b2AABB](&aabb))
 }
 
 // Enlarge a proxy and enlarge ancestors as necessary.
-func DynamicTree_EnlargeProxy(tree *DynamicTree, proxyId int, aabb AABB) {
-	C.b2DynamicTree_EnlargeProxy(cast[C.b2DynamicTree](tree), C.int(proxyId), cast[C.b2AABB](&aabb))
+func (tree *DynamicTree) EnlargeProxy(proxyId int, aabb AABB) {
+	C.b2DynamicTree_EnlargeProxy(cast[C.b2DynamicTree](tree), C.int(proxyId), *cast[C.b2AABB](&aabb))
 }
 
 // Modify the category bits on a proxy. This is an expensive operation.
-func DynamicTree_SetCategoryBits(tree *DynamicTree, proxyId int, categoryBits uint64) {
+func (tree *DynamicTree) SetCategoryBits(proxyId int, categoryBits uint64) {
 	C.b2DynamicTree_SetCategoryBits(cast[C.b2DynamicTree](tree), C.int(proxyId), C.uint64_t(categoryBits))
 }
 
 // Get the category bits on a proxy.
-func DynamicTree_GetCategoryBits(tree *DynamicTree, proxyId int) uint64 {
+func (tree *DynamicTree) GetCategoryBits(proxyId int) uint64 {
 	return uint64(C.b2DynamicTree_GetCategoryBits(cast[C.b2DynamicTree](tree), C.int(proxyId)))
 }
 
@@ -791,14 +791,14 @@ type b2TreeQueryCallbackFcn = func(proxyId int, userData uint64, context any) bo
 /*
 // Query an AABB for overlapping proxies. The callback class is called for each proxy that overlaps the supplied AABB.
 //	@return performance data
-func DynamicTree_Query(tree *DynamicTree, aabb AABB, maskBits uint64, callback b2TreeQueryCallbackFcn, context any) TreeStats {
+func (tree *DynamicTree) Query(aabb AABB, maskBits uint64, callback b2TreeQueryCallbackFcn, context any) TreeStats {
 
 }
 
 // Query an AABB for overlapping proxies. The callback class is called for each proxy that overlaps the supplied AABB.
 // No filtering is performed.
 //	@return performance data
-func DynamicTree_QueryAll(tree *DynamicTree, aabb AABB, callback b2TreeQueryCallbackFcn, context any) TreeStats {
+func (tree *DynamicTree) QueryAll(aabb AABB, callback b2TreeQueryCallbackFcn, context any) TreeStats {
 
 }
 */
@@ -823,7 +823,7 @@ type b2TreeRayCastCallbackFcn func(input *RayCastInput, proxyId int, userData ui
 // @param context user context that is passed to the callback
 //	@return performance data
 /*
-func DynamicTree_RayCast(tree *DynamicTree, input *RayCastInput, maskBits uint64, callback b2TreeRayCastCallbackFcn, context any) TreeStats {
+func (tree *DynamicTree) RayCast(input *RayCastInput, maskBits uint64, callback b2TreeRayCastCallbackFcn, context any) TreeStats {
 
 }
 */
@@ -847,61 +847,61 @@ type b2TreeShapeCastCallbackFcn = func(input *ShapeCastInput, proxyId int, userD
 // @param context user context that is passed to the callback
 //	@return performance data
 /*
-func DynamicTree_ShapeCast(tree *DynamicTree, input *ShapeCastInput, maskBits uint64, callback b2TreeShapeCastCallbackFcn, context any) TreeStats {
+func (tree *DynamicTree) ShapeCast(input *ShapeCastInput, maskBits uint64, callback b2TreeShapeCastCallbackFcn, context any) TreeStats {
 
 }
 */
 // Get the height of the binary tree.
-func DynamicTree_GetHeight(tree *DynamicTree) int {
+func (tree *DynamicTree) GetHeight() int {
 	return int(C.b2DynamicTree_GetHeight(cast[C.b2DynamicTree](tree)))
 }
 
 // Get the ratio of the sum of the node areas to the root area.
-func DynamicTree_GetAreaRatio(tree *DynamicTree) float32 {
+func (tree *DynamicTree) GetAreaRatio() float32 {
 	return float32(C.b2DynamicTree_GetAreaRatio(cast[C.b2DynamicTree](tree)))
 }
 
 // Get the bounding box that contains the entire tree
-func DynamicTree_GetRootBounds(tree *DynamicTree) AABB {
+func (tree *DynamicTree) GetRootBounds() AABB {
 	r := C.b2DynamicTree_GetRootBounds(cast[C.b2DynamicTree](tree))
 	return *cast[AABB](&r)
 }
 
 // Get the number of proxies created
-func DynamicTree_GetProxyCount(tree *DynamicTree) int {
+func (tree *DynamicTree) GetProxyCount() int {
 	return int(C.b2DynamicTree_GetProxyCount(cast[C.b2DynamicTree](tree)))
 }
 
 // Rebuild the tree while retaining subtrees that haven't changed. Returns the number of boxes sorted.
-func DynamicTree_Rebuild(tree *DynamicTree, fullBuild bool) int {
+func (tree *DynamicTree) Rebuild(fullBuild bool) int {
 	return int(C.b2DynamicTree_Rebuild(cast[C.b2DynamicTree](tree), C.bool(fullBuild)))
 }
 
 // Get the number of bytes used by this tree
-func DynamicTree_GetByteCount(tree *DynamicTree) int {
+func (tree *DynamicTree) GetByteCount() int {
 	return int(C.b2DynamicTree_GetByteCount(cast[C.b2DynamicTree](tree)))
 }
 
 /*
 // Get proxy user data
-func DynamicTree_GetUserData(tree *DynamicTree, proxyId int) uint64 {
+func (tree *DynamicTree) GetUserData(proxyId int) uint64 {
 
 }
 */
 
 // Get the AABB of a proxy
-func DynamicTree_GetAABB(tree *DynamicTree, proxyId int) AABB {
+func (tree *DynamicTree) GetAABB(proxyId int) AABB {
 	r := C.b2DynamicTree_GetAABB(cast[C.b2DynamicTree](tree), C.int(proxyId))
 	return *cast[AABB](&r)
 }
 
 // Validate this tree. For testing.
-func DynamicTree_Validate(tree *DynamicTree) {
+func (tree *DynamicTree) Validate() {
 	C.b2DynamicTree_Validate(cast[C.b2DynamicTree](tree))
 }
 
 // Validate this tree has no enlarged AABBs. For testing.
-func DynamicTree_ValidateNoEnlarged(tree *DynamicTree) {
+func (tree *DynamicTree) ValidateNoEnlarged() {
 	C.b2DynamicTree_ValidateNoEnlarged(cast[C.b2DynamicTree](tree))
 }
 
@@ -952,14 +952,14 @@ type PlaneSolverResult struct {
 // @param targetDelta the desired movement from the position used to generate the collision planes
 // @param planes the collision planes
 // @param count the number of collision planes
-func b2SolvePlanes(targetDelta Vec2, planes *CollisionPlane, count int) PlaneSolverResult {
-	r := C.b2SolvePlanes(cast[C.b2Vec2](&targetDelta), cast[C.b2CollisionPlane](planes), C.int(count))
+func SolvePlanes(targetDelta Vec2, planes *CollisionPlane, count int) PlaneSolverResult {
+	r := C.b2SolvePlanes(*cast[C.b2Vec2](&targetDelta), cast[C.b2CollisionPlane](planes), C.int(count))
 	return *cast[PlaneSolverResult](&r)
 }
 
 // Clips the velocity against the given collision planes. Planes with zero push or clipVelocity
 // set to false are skipped.
-func b2ClipVector(vector Vec2, planes *CollisionPlane, count int) Vec2 {
-	r := C.b2ClipVector(cast[C.b2Vec2](&vector), cast[C.b2CollisionPlane](planes), C.int(count))
+func ClipVector(vector Vec2, planes *CollisionPlane, count int) Vec2 {
+	r := C.b2ClipVector(*cast[C.b2Vec2](&vector), cast[C.b2CollisionPlane](planes), C.int(count))
 	return *cast[Vec2](&r)
 }

@@ -1144,9 +1144,6 @@ type ContactData struct {
 	Manifold  Manifold
 }
 
-/*
-
-
 // Prototype for a contact filter callback.
 // This is called when a contact pair is considered for collision. This allows you to
 // perform custom logic to prevent collision between shapes. This is only called if
@@ -1159,7 +1156,7 @@ type ContactData struct {
 // @see b2ShapeDef
 // @warning Do not attempt to modify the world inside this callback
 // @ingroup world
-typedef bool b2CustomFilterFcn( b2ShapeId shapeIdA, b2ShapeId shapeIdB, any context );
+type CustomFilterFcn = func(shapeIdA ShapeId, shapeIdB ShapeId, context any)
 
 // Prototype for a pre-solve callback.
 // This is called after a contact is updated. This allows you to inspect a
@@ -1174,8 +1171,8 @@ typedef bool b2CustomFilterFcn( b2ShapeId shapeIdA, b2ShapeId shapeIdB, any cont
 // Return false if you want to disable the contact this step
 // @warning Do not attempt to modify the world inside this callback
 // @ingroup world
-typedef bool b2PreSolveFcn( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Vec2 point, b2Vec2 normal, any context );
-*/
+type PreSolveFcn = func(shapeIdA ShapeId, shapeIdB ShapeId, point Vec2, normal Vec2, context any) bool
+
 // Prototype callback for overlap queries.
 // Called for each shape found in the query.
 // @see b2World_OverlapABB
@@ -1183,7 +1180,6 @@ typedef bool b2PreSolveFcn( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Vec2 point
 // @ingroup world
 type OverlapResultFcn = func(shapeId ShapeId, context any) bool
 
-/*
 // Prototype callback for ray and shape casts.
 // Called for each shape found in the query. You control how the ray cast
 // proceeds by returning a float:
@@ -1200,12 +1196,12 @@ type OverlapResultFcn = func(shapeId ShapeId, context any) bool
 // @return -1 to filter, 0 to terminate, fraction to clip the ray for closest hit, 1 to continue
 // @see b2World_CastRay
 // @ingroup world
-typedef float b2CastResultFcn( b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal, float fraction, any context );
+type CastResultFcn = func(shapeId ShapeId, point Vec2, normal Vec2, fraction float32, context any) float32
 
 // Used to collect collision planes for character movers.
 // Return true to continue gathering planes.
-typedef bool b2PlaneResultFcn( b2ShapeId shapeId, const b2PlaneResult* plane, any context );
-*/
+type PlaneResultFcn = func(shapeId ShapeId, plane *PlaneResult, context any) bool
+
 // These colors are used for debug draw and mostly match the named SVG colors.
 // See https://www.rapidtables.com/web/color/index.html
 // https://johndecember.com/html/spec/colorsvg.html

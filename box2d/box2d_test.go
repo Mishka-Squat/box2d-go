@@ -51,23 +51,22 @@ func TestSample(t *testing.T) {
 	groundBox := MakeBox(50.0, 10.0)
 	groundShapeDef := DefaultShapeDef()
 
-	groundShape := CreatePolygonShape(ground, &groundShapeDef, groundBox)
-	defer DestroyShape(groundShape, true)
+	groundShape := ground.CreatePolygonShape(&groundShapeDef, groundBox)
+	assert.True(t, groundShape.IsValid())
 
 	bodyDef := DefaultBodyDef()
 	bodyDef.Type = DynamicBody
 	bodyDef.Position = Vec2{X: 0.0, Y: 4.0}
 	body := world.CreateBody(&bodyDef)
-	if assert.True(t, body.IsValid()) {
-		defer body.Defer()
-	}
+	assert.True(t, body.IsValid())
 
 	dynamicBox := MakeBox(1.0, 1.0)
 	shapeDef := DefaultShapeDef()
 	shapeDef.Density = 1.0
 	shapeDef.Material.Friction = 0.3
 
-	CreatePolygonShape(body, &shapeDef, dynamicBox)
+	dynamicShape := body.CreatePolygonShape(&shapeDef, dynamicBox)
+	assert.True(t, dynamicShape.IsValid())
 
 	var timeStep float32 = 1.0 / 60.0
 	subStepCount := 4
