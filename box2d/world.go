@@ -2,8 +2,17 @@ package box2d
 
 /*
 #include "box2d/box2d.h"
+
+extern bool b2World_OverlapAABB_fcn( b2ShapeId shapeId, void* context );
 */
 import "C"
+import (
+	"runtime/cgo"
+	"unsafe"
+
+	"github.com/Mishka-Squat/gamemath/aabb2"
+	"github.com/Mishka-Squat/gamemath/vector2"
+)
 
 // World id references a world instance. This should be treated as an opaque handle.
 type WorldId struct {
@@ -85,14 +94,46 @@ func (w WorldId) GetJointEvents() JointEvents {
 	return *cast[JointEvents](&r)
 }
 
-// https://stackoverflow.com/questions/37157379/passing-function-pointer-to-the-c-code-using-cgo
+func (w WorldId) ComputeAABB() AABB {
+	aabb := aabb2.NanFloat32()
+
+	w.OverlapAABB(AABB{
+		A: vector2.MinFloat32(),
+		B: vector2.MaxFloat32(),
+	}, DefaultQueryFilter(), func(shapeId ShapeId, context any) bool {
+		aabb = aabb.Union(shapeId.GetAABB())
+		return true
+	}, nil)
+
+	return aabb
+}
+
+var go_b2World_OverlapAABB_fcn OverlapResultFcn
+
+//export b2World_OverlapAABB_fcn
+func b2World_OverlapAABB_fcn(shapeId C.b2ShapeId, context unsafe.Pointer) C.bool {
+	if go_b2World_OverlapAABB_fcn == nil {
+		return false
+	}
+
+	return C.bool(go_b2World_OverlapAABB_fcn(*cast[ShapeId](&shapeId), any(context)))
+}
+
 // Overlap test for all shapes that *potentially* overlap the provided AABB
 func (w WorldId) OverlapAABB(aabb AABB, filter QueryFilter, fcn OverlapResultFcn, context any) TreeStats {
 	cid := *cast[C.b2WorldId](&w)
 	caabb := *cast[C.b2AABB](&aabb)
 	cfilter := *cast[C.b2QueryFilter](&filter)
-	//cfcn := *cast[C.b2OverlapResultFcn](fcn)
-	r := C.b2World_OverlapAABB(cid, caabb, cfilter, nil, nil)
+	go_b2World_OverlapAABB_fcn = fcn
+	cfcn := (*C.b2OverlapResultFcn)(C.b2World_OverlapAABB_fcn)
+	var ccontext unsafe.Pointer
+	if context != nil {
+		hcontext := cgo.NewHandle(context)
+		defer hcontext.Delete()
+		ccontext = unsafe.Pointer(hcontext)
+	}
+
+	r := C.b2World_OverlapAABB(cid, caabb, cfilter, cfcn, ccontext)
 	return *cast[TreeStats](&r)
 }
 
