@@ -4,6 +4,7 @@ package box2d
 #include "box2d/box2d.h"
 */
 import "C"
+import "unsafe"
 
 // Body id references a body instance. This should be treated as an opaque handle.
 type BodyId struct {
@@ -89,13 +90,17 @@ B2_API void b2Body_SetName( b2BodyId bodyId, const char* name );
 
 // Get the body name.
 B2_API const char* b2Body_GetName( b2BodyId bodyId );
-
+*/
 // Set the user data for a body
-B2_API void b2Body_SetUserData( b2BodyId bodyId, void* userData );
+func (b BodyId) SetUserData(userData unsafe.Pointer) {
+	C.b2Body_SetUserData(*cast[C.b2BodyId](&b), userData)
+}
 
 // Get the user data stored in a body
-B2_API void* b2Body_GetUserData( b2BodyId bodyId );
-*/
+func (b BodyId) b2Body_GetUserData() unsafe.Pointer {
+	return C.b2Body_GetUserData(*cast[C.b2BodyId](&b))
+}
+
 // Get the world position of a body. This is the location of the body origin.
 func (b BodyId) GetPosition() Vec2 {
 	r := C.b2Body_GetPosition(*cast[C.b2BodyId](&b))

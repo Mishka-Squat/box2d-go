@@ -94,14 +94,18 @@ func (w WorldId) GetJointEvents() JointEvents {
 	return *cast[JointEvents](&r)
 }
 
-func (w WorldId) ComputeAABB() AABB {
+func (w WorldId) ComputeAABB(fn ...func(shape ShapeId)) AABB {
 	aabb := aabb2.NanFloat32()
 
 	w.OverlapAABB(AABB{
 		A: vector2.MinFloat32(),
 		B: vector2.MaxFloat32(),
-	}, DefaultQueryFilter(), func(shapeId ShapeId, context any) bool {
-		aabb = aabb.Union(shapeId.GetAABB())
+	}, DefaultQueryFilter(), func(shape ShapeId, context any) bool {
+		aabb = aabb.Union(shape.GetAABB())
+		for _, f := range fn {
+			f(shape)
+		}
+
 		return true
 	}, nil)
 
