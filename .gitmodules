@@ -1,4 +1,4 @@
 [submodule "external/box2d"]
 	path = external/box2d
 	url = git@github.com:Mishka-Squat/box2d.git
-	branch = main
+	branch = main_patched
