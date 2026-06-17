@@ -4,9 +4,12 @@ package box2d
 #include "box2d/box2d.h"
 
 extern bool b2World_OverlapAABB_fcn( b2ShapeId shapeId, void* context );
+
+#cgo noescape b2CreateBody
 */
 import "C"
 import (
+	"runtime"
 	"runtime/cgo"
 	"unsafe"
 
@@ -48,6 +51,13 @@ func (w WorldId) Destroy() {
 func (w WorldId) CreateBody(def *BodyDef) BodyId {
 	cworld := *cast[C.b2WorldId](&w)
 	cdef := cast[C.b2BodyDef](def)
+
+	if def.UserData != nil {
+		var pinner runtime.Pinner
+		pinner.Pin(def.UserData)
+		defer pinner.Unpin()
+	}
+
 	r := C.b2CreateBody(cworld, cdef)
 	return *cast[BodyId](&r)
 }
